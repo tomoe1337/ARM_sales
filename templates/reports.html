@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать отчеты</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <h1>Отчеты</h1>
+
+        <!-- Блок статистики -->
+        <div class="info-box">
+            <h3>Статистика</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Выручка за месяц</h5>
+                            <p class="card-text">1,200,000 ₽</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Выручка сегодня</h5>
+                            <p class="card-text">120,000 ₽</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">План по выручке на месяц</h5>
+                            <p class="card-text">2,000,000 ₽</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Количество клиентов сегодня</h5>
+                            <p class="card-text">25</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-danger mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Количество успешных сделок сегодня</h5>
+                            <p class="card-text">15</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-secondary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Клиенты на стадии переговоров</h5>
+                            <p class="card-text">8</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графики -->
+        <div class="info-box">
+            <h3>Графики</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Выручка (по дням)</h5>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Успешные сделки (по дням)</h5>
+                            <canvas id="dealsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- История отчетов -->
+        <div class="info-box">
+            <h3>История отчетов</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Дата</th>
+                        <th>Выручка</th>
+                        <th>Клиенты</th>
+                        <th>Успешные сделки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>2024-12-13</td>
+                        <td>120,000 ₽</td>
+                        <td>25</td>
+                        <td>15</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>2024-12-12</td>
+                        <td>150,000 ₽</td>
+                        <td>30</td>
+                        <td>20</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Пример данных для графиков
+        const revenueChartCtx = document.getElementById('revenueChart').getContext('2d');
+        const dealsChartCtx = document.getElementById('dealsChart').getContext('2d');
+
+        new Chart(revenueChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6', '7'],
+                datasets: [{
+                    label: 'Выручка',
+                    data: [100000, 150000, 120000, 130000, 140000, 110000, 125000],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        new Chart(dealsChartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6', '7'],
+                datasets: [{
+                    label: 'Успешные сделки',
+                    data: [10, 12, 15, 14, 13, 11, 16],
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+</html>
