@@ -1,6 +1,6 @@
 <?php
 
-	$connect = mysqli_connect(hostname: "localhost", username: "user_name",password:'', database:'ARM');
+	$connect = mysqli_connect(hostname: "localhost", username: "root",password:'12345', database:'ARM');
 
 	if (!$connect){
 		die("Error connect to database");
