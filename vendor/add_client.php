@@ -21,4 +21,4 @@
 	$stmt->close();
 	$connect->close();
 
-	header("Location: ../templates/add_client.php");
+	header("Location: ../templates/clients.php");
