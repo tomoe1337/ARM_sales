@@ -13,10 +13,13 @@
     $plan_data = plan_data($_SESSION['user']['id']);
 
     $all_managers_data = $plan_data['all_managers_data'];
-    $monthly_plan = htmlspecialchars($plan_data['monthly_plan']);
-
-
-    $percentage_completed = (intval($income_this_month)/intval($monthly_plan))*100;
+    $monthly_plan =  htmlspecialchars($plan_data['monthly_plan']);
+    
+    if ($monthly_plan > 0 ){
+        $percentage_completed = (intval($income_this_month)/intval($monthly_plan))*100;
+    }else{
+        $percentage_completed = 100;
+    }
 
     $deals_list = get_deals_info();
 ?>
