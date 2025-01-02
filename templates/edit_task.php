@@ -85,9 +85,13 @@
                     <textarea name = "comments" class="form-control" id="taskComment" rows="3" placeholder="Введите дополнительную информацию"><?=$task_data['comments']?></textarea>
                 </div>
                 <?php
-                    if ($_SESSION["user"]["rights"] == "head"){
+                    if ($_SESSION["user"]["rights"] == "head") {
+                        $modal_message = "Вы действительно ходите удалить задачу?";
+                        require_once('modal.php');
                 ?>
                         <button type="submit" class="btn btn-success">Редактировать</button>
+                        <button name = "delete" value = "True" type = "button" data-bs-toggle="modal" data-bs-target="#stopModal" class="btn btn-danger">Удалить</button>
+
                 <?php                
                     } else{?>
                         <button disabled class="btn btn-secondary">Нет доступа</button>

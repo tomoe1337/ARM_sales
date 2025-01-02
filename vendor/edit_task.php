@@ -8,15 +8,22 @@
 	$deadline = $_POST["deadline"];
 	$comments = ($_POST["comments"] !=="") ? $_POST["comments"] : NULL;
 
-	$stmt = $connect -> prepare("UPDATE tasks SET manager_id = ?, task = ?, priority = ?, deadline = ?,comments = ? 
-		WHERE id = ?");
 
-	$stmt->bind_param("isissi", $manager_id, $task, $priority,$deadline,$comments, $task_id);
+//Если была нажада кнопка удалить и подтвердить, то удаляем запись. Иначе редактируем
+	if (isset($_POST['modal_confirm'])){
+		$stmt = $connect -> prepare("DELETE FROM tasks WHERE `tasks`.`id` = ?");
 
-	$stmt->execute();
+		$stmt->bind_param("i", $task_id);
+	} else {
+		$stmt = $connect -> prepare("UPDATE tasks SET manager_id = ?, task = ?, priority = ?, deadline = ?,comments = ? 
+			WHERE id = ?");
 
+		$stmt->bind_param("isissi", $manager_id, $task, $priority,$deadline,$comments, $task_id);
+		$stmt->execute();		
+	}
 
+	$stmt->execute();		
 	$stmt->close();
 	$connect->close();
 
-	header("Location: ../templates/edit_task.php?task_id=" . $task_id);
+	header("Location: /index.php");
