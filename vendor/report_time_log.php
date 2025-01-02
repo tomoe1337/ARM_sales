@@ -1,7 +1,7 @@
 <?php
 	require_once("connect.php");
 
-	$date = date("Y-m-d");
+	$date = date("Y-m-01");
 
 	$sql = "SELECT t.date, u.full_name, t.arrived, t.left 
 	FROM time_log t 
