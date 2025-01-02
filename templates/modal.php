@@ -6,12 +6,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Вы действительно хотите закончить смену?
+        <?=$modal_message?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
-        <a href="../vendor/working_stop.php">
-          <button type="button" class="btn btn-primary">Закончить смену</button>
+        <a href="<?=isset($modal_action_link) ? $modal_action_link:"";?>">
+          <button name = "modal_confirm" class="btn btn-primary">Подтвердить</button>
         </a>
       </div>
     </div>

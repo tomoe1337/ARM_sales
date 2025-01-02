@@ -33,12 +33,15 @@
             <?php 
                 }if ($working_status){?>
     
-                    <button class="btn btn-danger btn-lg mb-3 "data-bs-toggle="modal" data-bs-target="#stopModal">
+                    <button class="btn btn-danger btn-lg mb-3 " data-bs-toggle="modal" data-bs-target="#stopModal">
                         Закончить смену
                     </button>
 
 
-            <?php   require_once('modal.html');
+            <?php   
+                    $modal_message = "Вы действительно ходите закончить смену?";
+                    $modal_action_link = "../vendor/working_stop.php";
+                    require_once('modal.php');
 
                     if (isset($_SESSION["message"])){
                         ?><center>
