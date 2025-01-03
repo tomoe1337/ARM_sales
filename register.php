@@ -18,7 +18,7 @@ if (isset($_SESSION['user'])){
 		<label>ФИО</label>
 		<input type = "text" name = "full_name" placeholder="Введите свое полное имя">
 		<label>Логин</label>
-		<input type = "text", name = "login" placeholder="Введите свой логин">
+		<input type = "text" name = "login" placeholder="Введите свой логин">
 		<label>Почта</label>
 		<input type="email" name = "email" placeholder="Введите ваш email">
 		<label>Изображение профиля</label>
@@ -32,7 +32,7 @@ if (isset($_SESSION['user'])){
         </select>
 
 		<label>Пароль</label>
-		<input type="password", name = "password" placeholder="Введите пароль">
+		<input type="password" name = "password" placeholder="Введите пароль">
 		<label>Подтверждение пароля</label>
 		<input type="password" name = "password_confirm" placeholder="Подтвердите пароль">
 		<button>Зарегестрироваться</button>
