@@ -16,7 +16,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_FILES)
 	}
 	$file = array_shift($_FILES);
 	if (in_array($file['type'], $types))
-	{
+	{	print_r(move_uploaded_file($file['tmp_name'], $uploadDir . $file['name']));
+		die();
 		if (move_uploaded_file($file['tmp_name'], $uploadDir . $file['name']))
 		{
 			echo "<a href='/uploads/{$file['name']}' download='{$file['name']}'>Ссылка на скачивание файла</a>";
