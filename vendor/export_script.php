@@ -27,7 +27,7 @@ rename($metadata['uri'],$tmp_directory);
  
 */
 
-	$url = "http://localhost:8888/vendor/worker.php";
+	$url = $_SERVER['SERVER_NAME'] . "/vendor/worker.php";
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, ['export_file' => new CURLFile ($tmp_directory,'application/json',)]);
