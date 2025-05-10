@@ -15,7 +15,7 @@
 
             <div class="mb-3">
                 <label for="client_id" class="form-label">ID Клиента</label>
-                <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client_id" name="client_id" value="{{ old('client_id', $clientId ?? '') }}" required>
+                <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client_id" name="client_id" value="{{ old('client_id', $selectedClientId ?? '') }}" required>
                 @error('client_id')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -50,7 +50,7 @@
                     {{-- Предполагается, что у вас есть переменная $users, содержащая список сотрудников --}}
                     @foreach ($users as $user)
                         <option value="{{ $user->id }}" {{ (old('user_id') == $user->id) ? 'selected' : '' }}>
-                            {{ $user->name }}
+                            {{ $user->name ?? 'Неизвестный пользователь' }} {{-- Добавлено ?? 'Неизвестный пользователь' для отладки, если name пустое --}}
                         </option>
                     @endforeach
                 </select>
