@@ -2,17 +2,41 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\DealController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\WorkSessionController;
-use App\Http\Controllers\PlanController;
-
-Route::middleware(['web'])->group(function () {
-    Route::get('/', function () {
-        return auth()->check() 
-            ? redirect()->route('dashboard')
+use App\Http\Controllers\Dashboard\IndexController as DashboardIndexController;
+use App\Http\Controllers\WorkSession\StartController as WorkSessionStartController;
+use App\Http\Controllers\Client\CreateController as ClientCreateController;
+use App\Http\Controllers\Client\IndexController as ClientIndexController;
+use App\Http\Controllers\Client\StoreController as ClientStoreController;
+use App\Http\Controllers\Client\ShowController as ClientShowController;
+use App\Http\Controllers\Client\EditController as ClientEditController;
+use App\Http\Controllers\Client\UpdateController as ClientUpdateController;
+use App\Http\Controllers\Deal\CreateController as DealCreateController;
+use App\Http\Controllers\Deal\StoreController as DealStoreController;
+use App\Http\Controllers\Deal\IndexController as DealIndexController;
+use App\Http\Controllers\Deal\ShowController as DealShowController;
+use App\Http\Controllers\Deal\EditController as DealEditController;
+use App\Http\Controllers\Deal\UpdateController as DealUpdateController;
+use App\Http\Controllers\Deal\Report\MonthController as DealReportMonthController;
+use App\Http\Controllers\Deal\Report\TimeController as DealReportTimeController;
+use App\Http\Controllers\Deal\Report\DayController as DealReportDayController;
+use App\Http\Controllers\Plan\IndexController as PlanIndexController;
+use App\Http\Controllers\Plan\StoreController as PlanStoreController;
+use App\Http\Controllers\Client\DestroyController as ClientDestroyController;
+use App\Http\Controllers\Plan\ShowController as PlanShowController;
+use App\Http\Controllers\Plan\EditController as PlanEditController;
+use App\Http\Controllers\Plan\CreateController as PlanCreateController;
+use App\Http\Controllers\Plan\UpdateController as PlanUpdateController;
+use App\Http\Controllers\WorkSession\EndController as WorkSessionEndController;
+use App\Http\Controllers\Task\IndexController as TaskIndexController;
+use App\Http\Controllers\WorkSession\ReportController as WorkSessionReportController;
+use App\Http\Controllers\Task\CreateController as TaskCreateController;
+use App\Http\Controllers\Task\StoreController as TaskStoreController;
+use App\Http\Controllers\Task\ShowController as TaskShowController;
+use App\Http\Controllers\Task\EditController as TaskEditController;
+use App\Http\Controllers\Task\UpdateController as TaskUpdateController;
+use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/', function () {
+ return auth()->check()
+ ? redirect()->route('dashboard')
             : redirect()->route('login');
     })->name('home');
 
@@ -29,32 +53,53 @@ Route::middleware(['web'])->group(function () {
 
     // Защищенные маршруты
     Route::middleware(['auth'])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
 
         // Рабочие сессии
-        Route::post('/work-sessions/start', [WorkSessionController::class, 'start'])->name('work-sessions.start');
-        Route::post('/work-sessions/end', [WorkSessionController::class, 'end'])->name('work-sessions.end');
-        Route::get('/work-sessions/report', [WorkSessionController::class, 'report'])->name('work-sessions.report');
+        Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
+        Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
+        Route::get('/work-sessions/report', WorkSessionReportController::class)->name('work-sessions.report');
 
         // Клиенты
-        Route::resource('clients', ClientController::class);
-        Route::get('clients/{client}/info', [ClientController::class, 'info'])->name('clients.info');
+        Route::get('/clients', ClientIndexController::class)->name('clients.index');
+        Route::get('/clients/create', ClientCreateController::class)->name('clients.create');
+        Route::post('/clients', ClientStoreController::class)->name('clients.store');
+        Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
+        Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
+        Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
+        Route::get('clients/{client}/info', \App\Http\Controllers\Client\InfoController::class)->name('clients.info');
 
         // Задачи
-        Route::resource('tasks', TaskController::class);
-        Route::get('tasks/{task}/info', [TaskController::class, 'info'])->name('tasks.info');
-        Route::get('tasks/plan', [TaskController::class, 'plan'])->name('tasks.plan');
+        Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
+        Route::get('/tasks/create', TaskCreateController::class)->name('tasks.create');
+        Route::post('/tasks', TaskStoreController::class)->name('tasks.store');
+        Route::get('/tasks/{task}', TaskShowController::class)->name('tasks.show');
+        Route::get('/tasks/{task}/edit', TaskEditController::class)->name('tasks.edit');
+        Route::put('/tasks/{task}', TaskUpdateController::class)->name('tasks.update');
+        Route::delete('/tasks/{task}', TaskDestroyController::class)->name('tasks.destroy');
+        Route::get('tasks/{task}/info', \App\Http\Controllers\Task\InfoController::class)->name('tasks.info');
+        // Existing Deal routes using invokable controllers
+        Route::get('/deals', DealIndexController::class)->name('deals.index');
+        Route::get('/deals/create', DealCreateController::class)->name('deals.create');
+        Route::post('/deals', DealStoreController::class)->name('deals.store');
+        Route::get('/deals/{deal}', DealShowController::class)->name('deals.show');
+        Route::get('/deals/report/day', DealReportDayController::class)->name('deals.report.day');
+        Route::delete('/deals/{deal}', \App\Http\Controllers\Deal\DestroyController::class)->name('deals.destroy');
 
-        // Сделки
-        Route::resource('deals', DealController::class);
-        Route::get('deals/report/day', [DealController::class, 'dayReport'])->name('deals.report.day');
-        Route::get('deals/report/month', [DealController::class, 'monthReport'])->name('deals.report.month');
-        Route::get('deals/report/time', [DealController::class, 'timeReport'])->name('deals.report.time');
+        Route::get('/deals/{deal}/edit', DealEditController::class)->name('deals.edit');
+        Route::put('/deals/{deal}', DealUpdateController::class)->name('deals.update');
+        Route::get('/deals/report/month', DealReportMonthController::class)->name('deals.report.month');
+        Route::get('tasks/plan', TaskPlanController::class)->name('tasks.plan');
+        Route::get('/deals/report/time', DealReportTimeController::class)->name('deals.report.time');
     });
-
+    
     // Планы (только для руководителей)
     Route::middleware(['auth', 'head'])->group(function () {
-        Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
-        Route::put('/plans/{user}', [PlanController::class, 'update'])->name('plans.update');
+        Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
+        Route::post('/plans', PlanStoreController::class)->name('plans.store');
+        Route::get('/plans', PlanIndexController::class)->name('plans.index');
+        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
+        Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
+        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
+        Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
     });
-});
