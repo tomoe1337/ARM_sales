@@ -23,6 +23,6 @@ class IndexController extends Controller
     {
         $user = auth()->user();
         $dashboardData = $this->dashboardService->getDashboardData($user);
-        return view('dashboard.index', compact('dashboardData'));
+        return view('dashboard', compact('dashboardData'));
     }
 }

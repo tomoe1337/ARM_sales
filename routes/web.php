@@ -67,7 +67,7 @@ Route::get('/', function () {
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
         Route::get('/clients/create', ClientCreateController::class)->name('clients.create');
         Route::post('/clients', ClientStoreController::class)->name('clients.store');
-        Route::get('/clients/{client}', ClientShowController::class)->name('clients.index');
+        //Route::get('/clients/{client}', ClientShowController::class)->name('clients.index');
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
@@ -82,7 +82,7 @@ Route::get('/', function () {
         Route::get('/deals', DealIndexController::class)->name('deals.index');
         Route::get('/deals/create', DealCreateController::class)->name('deals.create');
         Route::post('/deals', DealStoreController::class)->name('deals.store');
-        Route::get('/deals/{deal}', DealShowController::class)->name('deals.index');
+        //Route::get('/deals/{deal}', DealShowController::class)->name('deals.index');
         Route::get('/deals/report/day', DealReportDayController::class)->name('deals.report.day');
         Route::delete('/deals/{deal}', \App\Http\Controllers\Deal\DestroyController::class)->name('deals.destroy');
 
@@ -97,8 +97,8 @@ Route::get('/', function () {
         Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
         Route::post('/plans', PlanStoreController::class)->name('plans.store');
         Route::get('/plans', PlanIndexController::class)->name('plans.index');
-        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.index');
+        //Route::get('/plans/{plan}', PlanShowController::class)->name('plans.index');
         Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
-        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.index');
+        //Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.index');
         Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
     });

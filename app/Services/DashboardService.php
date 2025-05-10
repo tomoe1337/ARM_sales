@@ -25,7 +25,6 @@ class DashboardService
             'user' => $user,
             'employees' => $employees,
         ];
-
         if ($user->isWorking() || $user->isHead()) {
             if ($user->isHead()) {
                 $dashboardData['monthlyRevenue'] = Deal::where('status', 'won')
