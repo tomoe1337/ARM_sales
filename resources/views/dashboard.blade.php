@@ -62,17 +62,17 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Выручка за месяц</h5>
-                        <p class="card-text text-center display-6">{{ number_format($monthlyRevenue, 2) }}&nbsp;₽</p>
+                        <p class="card-text text-center display-6">{{ number_format($dashboardData['monthlyRevenue'], 2) }}&nbsp;₽</p>
                         <div class="progress">
                             <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ $percentageCompleted }}%;" 
-                                 aria-valuenow="{{ $percentageCompleted }}" 
+                                 style="width: {{ $dashboardData['percentageCompleted'] }}%;" 
+                                 aria-valuenow="{{ $dashboardData['percentageCompleted'] }}" 
                                  aria-valuemin="0" 
                                  aria-valuemax="100">
-                                {{ round($percentageCompleted, 2) }}%
+                                {{ round($dashboardData['percentageCompleted'], 2) }}%
                             </div>
                         </div>
-                        <p class="mt-2 text-center mb-0" style="white-space: nowrap;">{{ number_format($monthlyRevenue, 2) }}&nbsp;₽ из&nbsp;{{ number_format($monthlyPlan, 2) }}&nbsp;₽</p>
+                        <p class="mt-2 text-center mb-0" style="white-space: nowrap;">{{ number_format($dashboardData['monthlyRevenue'], 2) }}&nbsp;₽ из&nbsp;{{ number_format($dashboardData['monthlyPlan'], 2) }}&nbsp;₽</p>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <h5 class="card-title">Выигранные сделки</h5>
-                        <h2 class="card-text">{{ $wonDealsCount }}</h2>
+                        <h2 class="card-text">{{ $dashboardData['wonDealsCount'] }}</h2>
                         <a href="{{ route('deals.index', ['status' => 'won']) }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <h5 class="card-title">Выручка за сегодня</h5>
-                        <h2 class="card-text">{{ number_format($todayRevenue, 2) }}&nbsp;₽</h2>
+                        <h2 class="card-text">{{ number_format($dashboardData['todayRevenue'], 2) }}&nbsp;₽</h2>
                         <a href="{{ route('deals.index', ['status' => 'won']) }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                 <div class="card bg-warning text-white">
                     <div class="card-body">
                         <h5 class="card-title">Активные задачи</h5>
-                        <h2 class="card-text">{{ $activeTasksCount }}</h2>
+                        <h2 class="card-text">{{ $dashboardData['activeTasksCount'] }}</h2>
                         <a href="{{ route('tasks.index') }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($employees as $employee)
+                                        @foreach($dashboardData['employees'] as $employee)
                                             <tr>
                                                 <td>{{ $employee->full_name }}</td>
                                                 <td>
@@ -169,7 +169,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($latestDeals as $deal)
+                                    @foreach($dashboardData['latestDeals'] as $deal)
                                         <tr>
                                             <td><a href="{{ route('deals.show', $deal) }}">{{ $deal->title }}</a></td>
                                             <td>{{ $deal->client->name }}</td>
@@ -206,7 +206,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($latestClients as $client)
+                                    @foreach($dashboardData['latestClients'] as $client)
                                         <tr>
                                             <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
                                             <td>{{ $client->phone }}</td>
@@ -242,7 +242,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($activeTasks as $task)
+                                    @foreach($dashboardData['activeTasks'] as $task)
                                         <tr>
                                             <td><a href="{{ route('tasks.show', $task) }}">{{ $task->title }}</a></td>
                                             <td>{{ $task->assignee?->full_name ?? 'Не назначен' }}</td>
