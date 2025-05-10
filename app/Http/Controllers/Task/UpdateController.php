@@ -34,7 +34,7 @@ class UpdateController extends Controller
             $validated['assignee_id'] = $user->id;
         }
 
-        $this->taskService->updateTask($task, $validated);
+        $this->taskService->updateTask($task, $validated, $user);
 
         return redirect()->route('tasks.index')->with('success', 'Задача успешно обновлена');
     }
