@@ -31,8 +31,7 @@
                             <th>Действия</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach($clients as $client)
+                    <tbody>                        @foreach($deals as $client)
                             <tr>
                                 <td>{{ $client->name }}</td>
                                 <td>{{ $client->phone }}</td>
