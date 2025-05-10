@@ -17,15 +17,15 @@
                     <h5 class="card-title">План на месяц</h5>
                     <div class="progress mb-2">
                         <div class="progress-bar" role="progressbar" 
-                             style="width: {{ $percentageCompleted }}%;" 
-                             aria-valuenow="{{ $percentageCompleted }}" 
+                             style=\"width: {{ $dashboardData['percentageCompleted'] }}%;\" 
+                             aria-valuenow=\"{{ $dashboardData['percentageCompleted'] }}\" 
                              aria-valuemin="0" 
                              aria-valuemax="100">
-                            {{ $percentageCompleted }}%
+                            {{ $dashboardData['percentageCompleted'] }}%\
                         </div>
                     </div>
                     <p class="card-text text-center">
-                        {{ number_format($dashboardData['monthlyRevenue'], 2) }} ₽ из {{ number_format($monthlyPlan, 2) }} ₽
+                        {{ number_format($dashboardData['monthlyRevenue'], 2) }} ₽ из {{ number_format($dashboardData['monthlyPlan'], 2) }} ₽
                     </p>
                 </div>
             </div>
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    @if($user->isHead())
+    @if($dashboardData['user']->isHead())
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
@@ -48,7 +48,7 @@
                     <h5 class="card-title mb-0">Активные задачи</h5>
                 </div>
                 <div class="card-body">
-                    @if($activeTasks->count() > 0)
+                    @if($dashboardData['activeTasks']->count() > 0)
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
@@ -60,7 +60,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($activeTasks as $task)
+                                    @foreach($dashboardData['activeTasks'] as $task)
                                         <tr>
                                             <td>{{ $task->title }}</td>
                                             <td>{{ $task->assignee->name }}</td>
