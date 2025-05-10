@@ -56,19 +56,20 @@
                             @enderror
                         </div>
 
-{{--
                         <div class="mb-3">
                             <label for="client_id" class="form-label">Клиент</label>
-                            <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client-search" name="client_name" value="{{ old('client_name') }}" required>
-                            <input type="hidden" id="client-id" name="client_id" value="{{ old('client_id') }}">
-                            <div id="client-search-results" class="list-group"></div>
+                            <select class="form-select @error('client_id') is-invalid @enderror" id="client_id" name="client_id" required>
+                                <option value="">Выберите клиента</option>
+                                @foreach ($clients as $client)
+                                    <option value="{{ $client->id }}" @selected(old('client_id', request('client_id')) == $client->id)>
+                                        {{ $client->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @error('client_id')
-                                {{-- This error will likely be for the hidden client_id field --}}
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
---}}
-
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Добавить сделку</button>
                             <a href="{{ route('deals.index') }}" class="btn btn-secondary">Отмена</a>
@@ -79,44 +80,3 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script defer>
-    document.addEventListener('DOMContentLoaded', function () {
-        const clientSearchInput = document.getElementById('client-search');
-        const clientSearchResults = document.getElementById('client-search-results');
-        const clientIdInput = document.getElementById('client-id');
-
-        clientSearchInput.addEventListener('input', function () {
-            const query = this.value;
-
-            if (query.length < 2) { // Minimum characters before searching
-                clientSearchResults.innerHTML = '';
-                clientIdInput.value = ''; // Clear hidden input if search term is too short
-                return;
-            }
-
-            fetch('{{ route('clients.search') }}?query=' + query)
-                .then(response => response.json())
-                .then(clients => {
-                    clientSearchResults.innerHTML = ''; // Clear previous results
-                    clients.forEach(client => {
-                        const resultItem = document.createElement('button');
-                        resultItem.classList.add('list-group-item', 'list-group-item-action');
-                        resultItem.textContent = client.name;
-                        resultItem.setAttribute('data-client-id', client.id);
-                        resultItem.addEventListener('click', function () {
-                            clientSearchInput.value = client.name;
-                            clientIdInput.value = client.id;
-                            clientSearchResults.innerHTML = ''; // Hide results after selection
-                        });
-                        clientSearchResults.appendChild(resultItem);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error searching clients:', error);
-                });
-        });
-    });
-</script>
-@endpush
