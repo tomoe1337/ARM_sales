@@ -14,17 +14,7 @@ class UpdatePlanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = $this->route('user');
-        $plan = $user->plan;
-
-        if (!$plan) {
-             // Если плана для пользователя нет, возможно, авторизация не требуется
-             // или должна быть другая логика. Здесь просто вернем true
-             // или false в зависимости от общего правила.
-             return Auth::check();
-        }
-
-        return $this->authorize('update', $plan);
+        return true;
     }
 
     /**

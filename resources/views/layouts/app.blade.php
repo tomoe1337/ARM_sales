@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
 </head>
 <body>
     @auth
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="{{ route('dashboard') }}">Главная</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

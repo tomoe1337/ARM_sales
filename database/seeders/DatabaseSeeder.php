@@ -3,105 +3,107 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Deal;
 use App\Models\Task;
 use App\Models\WorkSession;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Plan;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Collection;
+use Faker\Factory as Faker;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Run the database seeds.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $faker = Faker::create('ru_RU');
 
-        // Создаем менеджера
-        $manager = User::create([
-            'full_name' => 'Иванов Иван Иванович',
-            'login' => 'manager',
-            'email' => 'manager@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'head'
-        ]);
-
-        // Создаем обычных пользователей
-        $users = collect();
-        for ($i = 1; $i <= 5; $i++) {
-            $users->push(User::create([
-                'full_name' => 'Сотрудник ' . $i,
-                'login' => 'employee' . $i,
-                'email' => 'employee' . $i . '@example.com',
+        // Создаем менеджера, если его ещё нет
+        $manager = User::firstOrCreate(
+            ['email' => 'manager@example.com'],
+            [
+                'full_name' => 'Иванов Иван Иванович',
+                'login' => 'manager',
                 'password' => Hash::make('password'),
-                'role' => 'manager'
-            ]));
+                'role' => 'head'
+            ]
+        );
+
+        // Создаем пользователей
+        $users = collect([$manager]); // добавляем менеджера в коллекцию
+
+        for ($i = 1; $i <= 5; $i++) {
+            $user = User::firstOrCreate(
+                ['email' => 'employee' . $i . '@example.com'],
+                [
+                    'full_name' => 'Сотрудник ' . $i,
+                    'login' => 'employee' . $i,
+                    'password' => Hash::make('password'),
+                    'role' => 'manager'
+                ]
+            );
+            $users->push($user);
         }
 
         // Для каждого пользователя создаем клиентов
-        $users->each(function ($user) {
+        $users->each(function ($user) use ($faker) {
             for ($i = 1; $i <= 3; $i++) {
                 $client = Client::create([
                     'name' => 'Клиент ' . $i . ' пользователя ' . $user->id,
-                    'phone' => '+7' . fake()->numerify('##########'),
+                    'phone' => '+7' . $faker->numerify('##########'),
                     'email' => 'client' . $i . '_user' . $user->id . '@example.com',
-                    'address' => fake()->address(),
-                    'description' => fake()->paragraph(),
+                    'address' => $faker->address(),
+                    'description' => $faker->paragraph(),
                     'user_id' => $user->id
                 ]);
 
+
                 // Для каждого клиента создаем сделки
                 for ($j = 1; $j <= 2; $j++) {
-                    $deal = Deal::create([
+                    Deal::create([
                         'title' => 'Сделка ' . $j . ' клиента ' . $i,
-                        'description' => fake()->paragraph(),
-                        'amount' => fake()->randomFloat(2, 1000, 100000),
-                        'status' => fake()->randomElement(['open', 'won', 'lost']),
-                        'closed_at' => fake()->dateTimeBetween('now', '+1 year'),
+                        'description' => $faker->paragraph(),
+                        'amount' => $faker->randomFloat(2, 1000, 100000),
+                        'status' => $faker->randomElement(['new', 'in_progress', 'won', 'lost']), // ✅ Только допустимые значения
+                        'closed_at' => $faker->dateTimeBetween('now', '+1 year'),
                         'user_id' => $user->id,
                         'client_id' => $client->id
                     ]);
+                }
 
-                    // Для каждой сделки создаем задачи
-                    for ($k = 1; $k <= 2; $k++) {
-                        Task::create([
-                            'title' => 'Задача ' . $k . ' сделки ' . $j,
-                            'description' => fake()->paragraph(),
-                            'deadline' => fake()->dateTimeBetween('now', '+1 month'),
-                            'status' => fake()->randomElement(['pending', 'in_progress', 'completed', 'cancelled']),
-                            'user_id' => $user->id,
-                            'assignee_id' => $user->id
-                        ]);
-                    }
+                // Для каждого клиента создаем задачи
+                for ($k = 1; $k <= 2; $k++) {
+                    Task::create([
+                        'title' => 'Задача ' . $k,
+                        'description' => $faker->paragraph(),
+                        'deadline' => $faker->dateTimeBetween('now', '+1 month'),
+                        'status' => $faker->randomElement(['pending', 'in_progress', 'completed', 'cancelled']),
+                        'user_id' => $user->id,
+                        'assignee_id' => $user->id
+                    ]);
+                }
+
+                // Создаем рабочие сессии
+                if (rand(0, 1)) {
+                    WorkSession::create([
+                        'user_id' => $user->id,
+                        'start_time' => now()->subHours(rand(1, 8)),
+                        'end_time' => null
+                    ]);
+                }
+
+                for ($i=1; $i <= 3 ; $i++) { 
+                    Plan::create([
+                        'user_id' => $i,
+                        'monthly_plan' => $faker->numberBetween(50000, 200000),
+                        'daily_plan' => $faker->numberBetween(1000, 10000),
+                    ]);
                 }
             }
-
-            // Создаем рабочие сессии для некоторых пользователей
-            if (rand(0, 1)) {
-                WorkSession::create([
-                    'user_id' => $user->id,
-                    'start_time' => now()->subHours(rand(1, 8)),
-                    'end_time' => null
-                ]);
-            }
         });
-
-        $user = User::create([
-            'full_name' => 'Test User',
-            'login' => 'testuser',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-            'role' => 'head',
-        ]);
-
-        Plan::create([
-            'user_id' => $user->id,
-            'monthly_plan' => 1000,
-            'daily_plan' => 50,
-        ]);
     }
 }

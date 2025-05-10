@@ -7,7 +7,7 @@ use App\Models\Plan;
 
 class PlanService
 {
-    public function getIndexData(): array
+    public function getPlansData(): array
     {
         $managers = User::where('role', 'manager')->get();
         $plans = Plan::whereIn('user_id', $managers->pluck('id'))->get()->keyBy('user_id');
@@ -25,7 +25,7 @@ class PlanService
         return Plan::create($data);
     }
 
-    public function updatePlanForUser(User $user, array $data): Plan
+    public function updatePlan(User $user, array $data): Plan
     {
         $plan = Plan::firstOrNew(['user_id' => $user->id]);
 

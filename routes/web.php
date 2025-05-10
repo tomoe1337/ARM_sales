@@ -61,9 +61,11 @@ Route::get('/', function () {
         Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
         Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
         Route::get('/work-sessions/report', WorkSessionReportController::class)->name('work-sessions.report');
-    }
-    Route::middleware(['auth','working'])->group(function () {
         Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
+
+    });
+
+    Route::middleware(['auth','working'])->group(function () {
 
         // Клиенты
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
@@ -99,8 +101,8 @@ Route::get('/', function () {
         Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
         Route::post('/plans', PlanStoreController::class)->name('plans.store');
         Route::get('/plans', PlanIndexController::class)->name('plans.index');
-        //Route::get('/plans/{plan}', PlanShowController::class)->name('plans.index');
+        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
         Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
-        //Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.index');
+        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
         Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
     });
