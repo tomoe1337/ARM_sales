@@ -15,10 +15,15 @@ class CreateController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $selectedClient = null;
         $selectedClientId = $request->query('client_id');
+        if ($selectedClientId) {
+            $selectedClient = Client::find($selectedClientId);
+        }
+
         $clients = Client::where('user_id', Auth::id())->get();
         $users = User::all(); // Получаем всех пользователей
 
-        return view('deals.create', compact('clients', 'selectedClientId', 'users'));
+        return view('deals.create', compact('clients', 'selectedClient', 'selectedClientId', 'users'));
     }
 }

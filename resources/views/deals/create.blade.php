@@ -4,7 +4,11 @@
 
 @section('content')
     <div class="container">
-        <h1>Создать сделку</h1>
+        @isset($selectedClient)
+            <h1>Создать сделку с клиентом {{ $selectedClient->name }}</h1>
+ @else
+            <h1>Создать новую сделку</h1>
+ @endisset
 
         <form action="{{ route('deals.store') }}" method="POST">
             @csrf
@@ -12,13 +16,10 @@
             <div class="mb-3">
                 <label for="client_id" class="form-label">ID Клиента</label>
                 <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client_id" name="client_id" value="{{ old('client_id', $clientId ?? '') }}" required>
-                @error('client_id')
  <div class="invalid-feedback">
                         {{ $message }}
                     </div>
                 @enderror
-            </div>
-
             <div class="mb-3">
                 <label for="name" class="form-label">Название сделки</label>
                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
