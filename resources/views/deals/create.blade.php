@@ -79,7 +79,8 @@
 </div>
 
 @section('scripts')
-<script>
+@push('scripts')
+<script defer>
     document.addEventListener('DOMContentLoaded', function () {
         const clientSearchInput = document.getElementById('client-search');
         const clientSearchResults = document.getElementById('client-search-results');
@@ -117,4 +118,5 @@
         });
     });
 </script>
-@endsection 
+@endpush
+@endsection
