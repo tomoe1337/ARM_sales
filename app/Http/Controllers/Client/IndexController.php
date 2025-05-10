@@ -18,4 +18,17 @@ class IndexController extends Controller
 
         return view('clients.index', compact('deals'));
     }
+
+    /**
+     * Search for clients by name.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $clients = Client::where('name', 'LIKE', "%{$query}%")
+            ->limit(10) // Adjust the limit as needed
+            ->get();
+        return response()->json($clients);
+    }
 }

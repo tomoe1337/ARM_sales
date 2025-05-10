@@ -75,6 +75,7 @@ Route::get('/', function () {
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
+ Route::get('/clients/search', [ClientIndexController::class, 'search'])->name('clients.search');
         // Задачи
         Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
         Route::get('/tasks/create', TaskCreateController::class)->name('tasks.create');
