@@ -42,7 +42,7 @@ class WorkSessionController extends Controller
 
     public function report()
     {
-        if (!Auth::user()->isManager()) {
+        if (!Auth::user()->isHead()) {
             abort(403);
         }
 
