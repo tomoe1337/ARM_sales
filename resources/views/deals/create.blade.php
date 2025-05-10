@@ -16,10 +16,13 @@
             <div class="mb-3">
                 <label for="client_id" class="form-label">ID Клиента</label>
                 <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client_id" name="client_id" value="{{ old('client_id', $clientId ?? '') }}" required>
- <div class="invalid-feedback">
+                @error('client_id')
+                    <div class="invalid-feedback">
                         {{ $message }}
                     </div>
                 @enderror
+            </div>
+
             <div class="mb-3">
                 <label for="name" class="form-label">Название сделки</label>
                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
