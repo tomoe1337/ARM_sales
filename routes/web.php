@@ -9,14 +9,12 @@ use App\Http\Controllers\Client\IndexController as ClientIndexController;
 use App\Http\Controllers\Client\StoreController as ClientStoreController;
 use App\Http\Controllers\Client\ShowController as ClientShowController;
 use App\Http\Controllers\Client\EditController as ClientEditController;
-use App\Http\Controllers\Client\UpdateController as ClientUpdateController;
 use App\Http\Controllers\Deal\CreateController as DealCreateController;
 use App\Http\Controllers\Deal\StoreController as DealStoreController;
 use App\Http\Controllers\Deal\IndexController as DealIndexController;
 use App\Http\Controllers\Deal\ShowController as DealShowController;
 use App\Http\Controllers\Deal\EditController as DealEditController;
 use App\Http\Controllers\Deal\UpdateController as DealUpdateController;
-use App\Http\Controllers\Deal\Report\MonthController as DealReportMonthController;
 use App\Http\Controllers\Deal\Report\TimeController as DealReportTimeController;
 use App\Http\Controllers\Deal\Report\DayController as DealReportDayController;
 use App\Http\Controllers\Plan\IndexController as PlanIndexController;
@@ -34,7 +32,12 @@ use App\Http\Controllers\Task\StoreController as TaskStoreController;
 use App\Http\Controllers\Task\ShowController as TaskShowController;
 use App\Http\Controllers\Task\EditController as TaskEditController;
 use App\Http\Controllers\Task\UpdateController as TaskUpdateController;
-use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/', function () {
+
+
+
+use App\Http\Controllers\Task\DestroyController as TaskDestroyController;
+
+Route::get('/', function () {
  return auth()->check()
  ? redirect()->route('dashboard')
             : redirect()->route('login');
@@ -64,7 +67,7 @@ use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
         Route::get('/clients/create', ClientCreateController::class)->name('clients.create');
         Route::post('/clients', ClientStoreController::class)->name('clients.store');
-        Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
+        Route::get('/clients/{client}', ClientShowController::class)->name('clients.index');
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
@@ -76,19 +79,16 @@ use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/
         Route::get('/tasks/{task}/edit', TaskEditController::class)->name('tasks.edit');
         Route::put('/tasks/{task}', TaskUpdateController::class)->name('tasks.update');
         Route::delete('/tasks/{task}', TaskDestroyController::class)->name('tasks.destroy');
-        Route::get('tasks/{task}/info', \App\Http\Controllers\Task\InfoController::class)->name('tasks.info');
-        // Existing Deal routes using invokable controllers
         Route::get('/deals', DealIndexController::class)->name('deals.index');
         Route::get('/deals/create', DealCreateController::class)->name('deals.create');
         Route::post('/deals', DealStoreController::class)->name('deals.store');
-        Route::get('/deals/{deal}', DealShowController::class)->name('deals.show');
+        Route::get('/deals/{deal}', DealShowController::class)->name('deals.index');
         Route::get('/deals/report/day', DealReportDayController::class)->name('deals.report.day');
         Route::delete('/deals/{deal}', \App\Http\Controllers\Deal\DestroyController::class)->name('deals.destroy');
 
         Route::get('/deals/{deal}/edit', DealEditController::class)->name('deals.edit');
         Route::put('/deals/{deal}', DealUpdateController::class)->name('deals.update');
-        Route::get('/deals/report/month', DealReportMonthController::class)->name('deals.report.month');
-        Route::get('tasks/plan', TaskPlanController::class)->name('tasks.plan');
+
         Route::get('/deals/report/time', DealReportTimeController::class)->name('deals.report.time');
     });
     
@@ -97,8 +97,8 @@ use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/
         Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
         Route::post('/plans', PlanStoreController::class)->name('plans.store');
         Route::get('/plans', PlanIndexController::class)->name('plans.index');
-        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
+        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.index');
         Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
-        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
+        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.index');
         Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
     });
