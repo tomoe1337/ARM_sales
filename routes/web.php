@@ -67,7 +67,6 @@ use App\Http\Controllers\Task\PlanController as TaskPlanController;Route::get('/
         Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
-        Route::get('clients/{client}/info', \App\Http\Controllers\Client\InfoController::class)->name('clients.info');
 
         // Задачи
         Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
