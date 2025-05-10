@@ -14,8 +14,9 @@ class CreateController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $selectedClientId = $request->query('client_id');
         $clients = Client::where('user_id', Auth::id())->get();
 
-        return view('deals.create', compact('clients'));
+        return view('deals.create', compact('clients', 'selectedClientId'));
     }
 }

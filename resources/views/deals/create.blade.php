@@ -61,7 +61,7 @@
                             <select class="form-select @error('client_id') is-invalid @enderror" id="client_id" name="client_id" required>
                                 <option value="">Выберите клиента</option>
                                 @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}" @selected(old('client_id', request('client_id')) == $client->id)>
+                                    <option value="{{ $client->id }}" @selected(old('client_id', $clientId ?? null) == $client->id)>
                                         {{ $client->name }}
                                     </option>
                                 @endforeach
