@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -77,14 +79,7 @@ class TaskService
      */
     public function updateTask(Task $task, array $data, User $user): Task
     {
-        $validated = $data;
-
-        $validated = $validator->validated();
-
-        // Если пользователь не руководитель, он может быть только исполнителем своей задачи
-        if (!$user->isHead()) {
-            $validated['assignee_id'] = $user->id;
-        }
+        $validated = $data; // Используем данные как есть, логика assignee_id в контроллере
 
         $task->update($validated);
 
