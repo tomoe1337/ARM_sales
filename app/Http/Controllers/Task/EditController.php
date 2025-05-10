@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Task;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Services\TaskService; // Предполагаем, что у вас есть TaskService
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Импортируем фасад Auth
 
 class EditController extends Controller
 {
@@ -29,7 +29,8 @@ class EditController extends Controller
         // убедитесь, что Policy корректно настроен для метода 'update'.
         // $this->authorize('update', $task);
 
-        $employees = $this->taskService->getAssignableEmployees();
+        $user = Auth::user(); // Получаем текущего пользователя
+        $employees = $this->taskService->getAssignableEmployees($user); // Передаем пользователя в метод
 
         return view('tasks.edit', compact('task', 'employees'));
     }
