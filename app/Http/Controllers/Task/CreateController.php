@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Task;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use App\Services\TaskService;
-use Illuminate\Http\Request;
+
 
 class CreateController extends Controller
 {
@@ -22,7 +23,8 @@ class CreateController extends Controller
     {
         $this->authorize('create', \App\Models\Task::class);
 
-        $employees = $this->taskService->getAssignableEmployees();
+        $user = Auth::user();
+        $employees = $this->taskService->getAssignableEmployees($user);
 
         return view('tasks.create', compact('employees'));
     }
