@@ -55,13 +55,15 @@ Route::get('/', function () {
         ->middleware('auth');
 
     // Защищенные маршруты
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
 
+    Route::middleware(['auth'])->group(function () {
         // Рабочие сессии
         Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
         Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
         Route::get('/work-sessions/report', WorkSessionReportController::class)->name('work-sessions.report');
+    }
+    Route::middleware(['auth','working'])->group(function () {
+        Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
 
         // Клиенты
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
@@ -93,7 +95,7 @@ Route::get('/', function () {
     });
     
     // Планы (только для руководителей)
-    Route::middleware(['auth', 'head'])->group(function () {
+    Route::middleware(['auth', 'head', 'working'])->group(function () {
         Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
         Route::post('/plans', PlanStoreController::class)->name('plans.store');
         Route::get('/plans', PlanIndexController::class)->name('plans.index');

@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'head' => \App\Http\Middleware\CheckHeadRole::class,
+            'working' => \App\Http\Middleware\CheckWorkSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

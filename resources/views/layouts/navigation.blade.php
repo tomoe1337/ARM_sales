@@ -10,6 +10,8 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
                 @auth
+                    @if(auth()->user()->isWorking())
+                @auth
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('dashboard') }}">
                             <i class="fas fa-tachometer-alt"></i> Дашборд
@@ -36,6 +38,8 @@
                                 <i class="fas fa-chart-line"></i> Управление планами
                             </a>
                         </li>
+                    @endif
+                @endauth
                     @endif
                 @endauth
             </ul>
