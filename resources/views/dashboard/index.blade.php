@@ -7,7 +7,7 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Выручка за месяц</h5>
-                    <p class="card-text text-center display-6">{{ number_format($monthlyRevenue, 2) }} ₽</p>
+                    <p class="card-text text-center display-6">{{ number_format($dashboardData['monthlyRevenue'], 2) }} ₽</p>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <p class="card-text text-center">
-                        {{ number_format($monthlyRevenue, 2) }} ₽ из {{ number_format($monthlyPlan, 2) }} ₽
+                        {{ number_format($dashboardData['monthlyRevenue'], 2) }} ₽ из {{ number_format($monthlyPlan, 2) }} ₽
                     </p>
                 </div>
             </div>
@@ -34,7 +34,7 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Количество клиентов</h5>
-                    <p class="card-text text-center display-6">{{ $clientsCount }}</p>
+                    <p class="card-text text-center display-6">{{ $dashboardData['clientsCount'] }}</p>
                 </div>
             </div>
         </div>
