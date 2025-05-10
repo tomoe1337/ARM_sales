@@ -80,7 +80,6 @@
     </div>
 </div>
 
-@section('scripts')
 @push('scripts')
 <script defer>
     document.addEventListener('DOMContentLoaded', function () {
@@ -121,4 +120,3 @@
     });
 </script>
 @endpush
-@endsection
