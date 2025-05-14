@@ -28,8 +28,8 @@
             @endisset
 
             <div class="mb-3">
-                <label for="name" class="form-label">Название сделки</label>
-                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                <label for="title" class="form-label">Название сделки</label>
+                <input type="text" class="form-control @error('name') is-invalid @enderror" id="title" name="title" value="{{ old('name') }}" required>
                 @error('name')
                     <div class="invalid-feedback">
                         {{ $message }}
@@ -54,12 +54,12 @@
                     {{-- Предполагается, что у вас есть переменная $users, содержащая список сотрудников --}}
                     @foreach ($users as $user)
                         <option value="{{ $user->id }}" {{ (old('user_id') == $user->id) ? 'selected' : '' }}>
-                            {{ $user->name ?? 'Неизвестный пользователь' }} {{-- Добавлено ?? 'Неизвестный пользователь' для отладки, если name пустое --}}
+                            {{ $user->full_name ?? 'Неизвестный пользователь' }}
                         </option>
                     @endforeach
                 </select>
                 @error('user_id')
- <div class="invalid-feedback">
+                    <div class="invalid-feedback">
                         {{ $message }}
                     </div>
                 @enderror

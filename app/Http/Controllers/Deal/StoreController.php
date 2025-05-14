@@ -17,9 +17,9 @@ class StoreController extends Controller
     }
 
     public function __invoke(StoreDealRequest $request)
-    {
-        $this->dealService->createDeal($request->validated());
-
+    {   
+        $deal = $this->dealService->createDeal($request->validated());
+        
         return redirect()->route('deals.index')->with('success', 'Сделка успешно создана');
     }
 }

@@ -75,7 +75,6 @@ Route::get('/', function () {
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
- Route::get('/clients/search', [ClientIndexController::class, 'search'])->name('clients.search');
         // Задачи
         Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
         Route::get('/tasks/create', TaskCreateController::class)->name('tasks.create');
@@ -84,6 +83,8 @@ Route::get('/', function () {
         Route::get('/tasks/{task}/edit', TaskEditController::class)->name('tasks.edit');
         Route::put('/tasks/{task}', TaskUpdateController::class)->name('tasks.update');
         Route::delete('/tasks/{task}', TaskDestroyController::class)->name('tasks.destroy');
+
+        // Сделки
         Route::get('/deals', DealIndexController::class)->name('deals.index');
         Route::get('/deals/create', DealCreateController::class)->name('deals.create');
         Route::post('/deals', DealStoreController::class)->name('deals.store');

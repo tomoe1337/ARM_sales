@@ -43,13 +43,16 @@ use Illuminate\Support\Facades\Storage;
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('plans.index') }}">Управление планами</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('plans.index') }}">Анализ</a>
+                        </li>
                     @endif
                 </ul>
                 <div class="dropdown">
                     <button class="btn avatar-dropdown" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ auth()->user()->avatar ? Storage::url(auth()->user()->avatar) : asset('storage/avatars/default_avatar.png') }}" 
-                             alt="Аватар" 
-                             class="rounded-circle" 
+                        <img src="{{ auth()->user()->avatar ? Storage::url(auth()->user()->avatar) : asset('storage/avatars/default_avatar.png') }}"
+                             alt="Аватар"
+                             class="rounded-circle"
                              style="width: 40px; height: 40px; object-fit: cover;">
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -71,4 +74,4 @@ use Illuminate\Support\Facades\Storage;
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>
-</html> 
+</html>

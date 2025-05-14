@@ -9,7 +9,6 @@ class DealService
 {
     public function createDeal(array $data)
     {
-        $data['user_id'] = Auth::id();
         $deal = Deal::create($data);
         return $deal;
     }

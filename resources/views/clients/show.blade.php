@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">Информация о клиенте: {{ $client->name }}</div>
+                <div class="card-header">Информация о клиенте № {{ $client->id }}: {{ $client->name }}</div>
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-3">Телефон:</dt>
