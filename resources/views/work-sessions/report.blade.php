@@ -32,25 +32,22 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($sessions as $userSessions)
-                                    @if(isset($user)) {{-- If $user is set, $sessions is likely a collection for one user --}}
-                                        {{-- Loop directly through sessions as they are already filtered --}}
-                                        @foreach($sessions as $session)
-                                            <tr>
-                                                <td>{{ $session->start_time->format('d.m.Y') }}</td>
-                                                <td>{{ $session->start_time->format('H:i') }}</td>
-                                                <td>{{ $session->end_time ? $session->end_time->format('H:i') : 'В процессе' }}</td>
-                                                <td>
-                                                    @if($session->end_time)
-                                                        {{ $session->start_time->diff($session->end_time)->format('%H:%I') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                        @break {{-- Break the outer loop after processing the single user's sessions --}}
-                                    @else {{-- If $user is not set, loop through grouped sessions --}}
+    @if(isset($user)) {{-- Если $user установлен, показываем сессии для этого пользователя напрямую --}}
+        @foreach($sessions as $session)
+            <tr>
+                <td>{{ $session->start_time->format('d.m.Y') }}</td>
+                <td>{{ $session->start_time->format('H:i') }}</td>
+                <td>{{ $session->end_time ? $session->end_time->format('H:i') : 'В процессе' }}</td>
+                <td>
+                    @if($session->end_time)
+                        {{ $session->start_time->diff($session->end_time)->format('%H:%I') }}
+                    @else
+                        -
+                    @endif
+                </td>
+            </tr>
+        @endforeach
+    @else {{-- Если $user не установлен, показываем сгруппированные сессии для всех пользователей --}}
                                         @foreach($userSessions as $session)
                                             <tr>
                                                 <td>{{ $session->user->name }}</td>
@@ -65,9 +62,7 @@
                                                     @endif
                                                 </td>
                                             </tr>
-                                        @endforeach
-                                    @endforeach
-                                @endforeach
+@endforeach
                             </tbody>
                         </table>
                     </div>
