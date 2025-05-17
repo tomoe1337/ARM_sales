@@ -62,7 +62,7 @@ Route::get('/', function () {
         // Рабочие сессии
         Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
         Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
-        Route::get('/work-sessions/report', WorkSessionReportController::class)->name('work-sessions.report');
+        Route::get('/work-sessions/report/{user?}', WorkSessionReportController::class)->name('work-sessions.report');
         Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
 
     });

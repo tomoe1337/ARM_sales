@@ -134,7 +134,7 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('work-sessions.report') }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('work-sessions.report', $employee->id) }}" class="btn btn-sm btn-info">
                                                         <i class="fas fa-chart-bar"></i> Отчет
                                                     </a>
                                                 </td>

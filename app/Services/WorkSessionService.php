@@ -39,9 +39,16 @@ class WorkSessionService
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getReportData()
+    public function getReportData(?User $user = null)
     {
-        return WorkSession::with('user')
+        $query = WorkSession::with('user')
+            ->orderBy('start_time', 'desc');
+
+        if ($user) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query
             ->orderBy('start_time', 'desc')
             ->get()
             ->groupBy('user_id');
