@@ -43,8 +43,14 @@ use Illuminate\Support\Facades\Storage;
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('plans.index') }}">Управление планами</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('plans.index') }}">Анализ</a>
+                        <li class="nav-item position-relative">
+                            <a class="nav-link pe-5 position-relative" href="{{ route('analyticsAi.index') }}">
+                                Анализ
+                                <span class="badge bg-primary rounded-pill position-absolute top-0 end-0 translate-middle d-none d-lg-inline-block"
+                                      style="font-size: 0.65em; margin-top:0.5em ">
+            beta
+        </span>
+                            </a>
                         </li>
                     @endif
                 </ul>

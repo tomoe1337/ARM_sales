@@ -42,7 +42,20 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
+                        <div class="mb-3">
+                            <label for="assignee_id" class="form-label">Исполнитель</label>
+                            <select class="form-control @error('assignee_id') is-invalid @enderror" id="assignee_id" name="user_id" required>
+                                <option value="">Выберите исполнителя</option>
+                                @foreach($employees as $employee)
+                                    <option value="{{ $employee->id }}" {{ old('assignee_id') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('assignee_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Описание</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description">{{ old('description') }}</textarea>
@@ -61,4 +74,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

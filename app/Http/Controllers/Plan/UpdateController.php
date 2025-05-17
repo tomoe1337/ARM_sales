@@ -21,9 +21,9 @@ class UpdateController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(UpdatePlanRequest $request, Plan $plan): RedirectResponse
+    public function __invoke(UpdatePlanRequest $request, User $user): RedirectResponse
     {
-        $this->planService->updatePlan($plan, $request->validated());
+        $this->planService->updatePlan($user, $request->validated());
 
         return redirect()->route('plans.index')->with('success', 'План успешно обновлен');
     }

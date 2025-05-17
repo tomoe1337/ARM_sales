@@ -26,7 +26,8 @@ class UpdateDealRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'amount' => 'required|numeric|min:0',
-            'status' => 'required|in:new,in_progress,won,lost',
+            'user_id' => 'required|integer|required|exists:users,id',
+            'status' => 'nullable|in:new,in_progress,won,lost',
             'closed_at' => 'nullable|date',
             'client_id' => 'required|exists:clients,id',
         ];

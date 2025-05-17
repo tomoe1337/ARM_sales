@@ -14,7 +14,7 @@ class CheckHeadRole
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next): mixed
     {
         if (!Auth::check()) {
             return redirect()->route('login');
@@ -26,4 +26,4 @@ class CheckHeadRole
 
         return $next($request);
     }
-} 
+}

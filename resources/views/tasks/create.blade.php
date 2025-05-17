@@ -63,9 +63,10 @@
                         <div class="mb-3">
                             <label for="status" class="form-label">Статус</label>
                             <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
-                                <option value="new" {{ old('status') == 'new' ? 'selected' : '' }}>Новая</option>
+                                <option value="pending" {{ old('status') == 'new' ? 'selected' : '' }}>Новая</option>
                                 <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>В работе</option>
                                 <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Выполнена</option>
+                                <option value="cancelled" {{ old('status') == 'cancelled' ? 'selected' : '' }}>Закрыта</option>
                             </select>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -86,4 +87,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

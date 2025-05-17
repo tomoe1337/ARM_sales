@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            DealSeeder::class,
+        ]);
+
         $faker = Faker::create('ru_RU');
 
         // Создаем менеджера, если его ещё нет
@@ -61,15 +65,14 @@ class DatabaseSeeder extends Seeder
                     'user_id' => $user->id
                 ]);
 
-
-                // Для каждого клиента создаем сделки
+                // Для каждого клиента создаем сделки (все в мае 2025)
                 for ($j = 1; $j <= 2; $j++) {
                     Deal::create([
                         'title' => 'Сделка ' . $j . ' клиента ' . $i,
                         'description' => $faker->paragraph(),
                         'amount' => $faker->randomFloat(2, 1000, 100000),
-                        'status' => $faker->randomElement(['new', 'in_progress', 'won', 'lost']), // ✅ Только допустимые значения
-                        'closed_at' => $faker->dateTimeBetween('now', '+1 year'),
+                        'status' => $faker->randomElement(['new', 'in_progress', 'won', 'lost']),
+                        'closed_at' => $faker->dateTimeBetween('2025-05-01', '2025-05-31'),
                         'user_id' => $user->id,
                         'client_id' => $client->id
                     ]);
@@ -87,7 +90,7 @@ class DatabaseSeeder extends Seeder
                     ]);
                 }
 
-                // Создаем рабочие сессии
+                // С вероятностью 50% создаём рабочую сессию
                 if (rand(0, 1)) {
                     WorkSession::create([
                         'user_id' => $user->id,
@@ -95,15 +98,18 @@ class DatabaseSeeder extends Seeder
                         'end_time' => null
                     ]);
                 }
-
-                for ($i=1; $i <= 3 ; $i++) { 
-                    Plan::create([
-                        'user_id' => $i,
-                        'monthly_plan' => $faker->numberBetween(50000, 200000),
-                        'daily_plan' => $faker->numberBetween(1000, 10000),
-                    ]);
-                }
             }
         });
+
+        // Создаем планы только один раз для первых 3 пользователей
+        for ($i = 1; $i <= 3; $i++) {
+            Plan::firstOrCreate(
+                ['user_id' => $i],
+                [
+                    'monthly_plan' => $faker->numberBetween(50000, 200000),
+                    'daily_plan' => $faker->numberBetween(1000, 10000),
+                ]
+            );
+        }
     }
 }
