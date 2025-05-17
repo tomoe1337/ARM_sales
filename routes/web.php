@@ -10,6 +10,7 @@ use App\Http\Controllers\Client\EditController as ClientEditController;
 use App\Http\Controllers\Client\IndexController as ClientIndexController;
 use App\Http\Controllers\Client\ShowController as ClientShowController;
 use App\Http\Controllers\Client\StoreController as ClientStoreController;
+use App\Http\Controllers\Client\UpdateController as ClientUpdateController;
 use App\Http\Controllers\Dashboard\IndexController as DashboardIndexController;
 use App\Http\Controllers\Deal\CreateController as DealCreateController;
 use App\Http\Controllers\Deal\EditController as DealEditController;
@@ -74,6 +75,7 @@ Route::get('/', function () {
         Route::post('/clients', ClientStoreController::class)->name('clients.store');
         Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
+        Route::put('/clients/{client}', ClientUpdateController::class)->name('clients.update');
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
         // Задачи
