@@ -25,7 +25,7 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $sessions = $this->workSessionService->getGroupedWorkSessionsForReport();
+        $sessions = $this->workSessionService->getReportData();
 
         return view('work-sessions.report', compact('sessions'));
     }
