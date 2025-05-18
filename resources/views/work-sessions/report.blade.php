@@ -48,7 +48,6 @@
             </tr>
         @endforeach
     @else {{-- Если $user не установлен, показываем сгруппированные сессии для всех пользователей --}}
-                                        {{ dd($userSessions) }} {{-- Временно для отладки --}}
                                         @foreach($userSessions as $userSessionGroup) {{-- Перебираем группы сессий по пользователям --}}
                                             @foreach($userSessionGroup as $session) {{-- Перебираем сессии внутри группы --}}
                                             <tr>
