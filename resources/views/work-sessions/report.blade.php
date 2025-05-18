@@ -48,7 +48,8 @@
             </tr>
         @endforeach
     @else {{-- Если $user не установлен, показываем сгруппированные сессии для всех пользователей --}}
-                                        @foreach($userSessions as $session)
+                                        @foreach($userSessions as $userSessionGroup) {{-- Перебираем группы сессий по пользователям --}}
+                                            @foreach($userSessionGroup as $session) {{-- Перебираем сессии внутри группы --}}
                                             <tr>
                                                 <td>{{ $session->user->name }}</td>
                                                 <td>{{ $session->start_time->format('d.m.Y') }}</td>
@@ -62,6 +63,7 @@
                                                     @endif
                                                 </td>
                                             </tr>
+                                            @endforeach
                                         @endforeach
     @endif
                             </tbody>
