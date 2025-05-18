@@ -32,6 +32,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $request->session()->save(); // Добавлена эта строка
             $user = Auth::user();
             \Log::info('Login successful for user:', ['user' => $user->toArray()]);
             
