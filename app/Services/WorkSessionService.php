@@ -48,9 +48,14 @@ class WorkSessionService
             $query->where('user_id', $user->id);
         }
 
-        return $query
-            ->orderBy('start_time', 'desc')
-            ->get()
-            ->groupBy('user_id');
+        $sessions = $query->get();
+
+        // Если пользователь указан, возвращаем плоскую коллекцию для этого пользователя
+        if ($user) {
+            return $sessions;
+        }
+
+        // Если пользователь не указан, группируем по пользователю
+        return $sessions->groupBy('user_id');
     }
 }

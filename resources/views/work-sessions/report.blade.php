@@ -3,7 +3,6 @@
 @section('title', 'Отчет о рабочем времени')
 
 @section('content')
-{{ 'Представление загружено!' }} {{-- Временно для отладки --}}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-md-12">
