@@ -20,10 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
+       /* $this->call([
             DealSeeder::class,
         ]);
-
+*/
         $faker = Faker::create('ru_RU');
 
         // Создаем менеджера, если его ещё нет

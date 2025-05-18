@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\WorkSession;
 
-use App\\Models\\User;
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Services\WorkSessionService;
 use Illuminate\Support\Facades\Auth;

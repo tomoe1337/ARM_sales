@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col-md-12">
             @if(isset($user))
-                <h1>Отчет о рабочем времени: {{ $user->name }}</h1>
+                <h1>Отчет о рабочем времени: {{ $user->full_name }}</h1>
             @else
                 <h1>Отчет о рабочем времени сотрудников</h1>
             @endif
@@ -74,4 +74,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
