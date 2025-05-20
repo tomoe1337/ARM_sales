@@ -79,23 +79,4 @@ class User extends Authenticatable
             ->first();
     }
 
-    public function getAuthIdentifierName(): string
-    {
-        return 'login';
-    }
-
-    public function getAuthIdentifier()
-    {
-        return $this->login;
-    }
-
-    /**
-     * Get the login username to be used by the controller.
-     *
-     * @return string
-     */
-    public function username()
-    {
-        return 'login';
-    }
 }
