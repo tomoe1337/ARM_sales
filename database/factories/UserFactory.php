@@ -32,8 +32,7 @@ class UserFactory extends Factory
             'login' => Str::lower($firstName . $lastName),
             'email' => fake()->unique()->safeEmail(),
             'password' => Hash::make('password'),
-            'rights' => 'user',
-            'role' => 'employee',
+            'role' => 'manager',
             'avatar' => null,
         ];
     }

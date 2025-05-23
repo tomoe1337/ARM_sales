@@ -11,7 +11,7 @@ class DealFactory extends Factory
     public function definition(): array
     {
         $statuses = ['new', 'in_progress', 'won', 'lost'];
-        
+
         return [
             'title' => fake()->sentence(3),
             'description' => fake()->paragraph(),
@@ -20,6 +20,7 @@ class DealFactory extends Factory
             'closed_at' => fake()->dateTimeBetween('now', '+1 year'),
             'user_id' => User::factory(),
             'client_id' => Client::factory(),
+
         ];
     }
-} 
+}
