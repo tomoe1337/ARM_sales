@@ -35,7 +35,7 @@ class AuthController extends Controller
             $request->session()->save(); // Добавлена эта строка
             $user = Auth::user();
             \Log::info('Login successful for user:', ['user' => $user->toArray()]);
-            
+
             if (in_array($user->role, ['manager', 'head'])) {
                 return redirect()->route('dashboard');
             }
@@ -50,6 +50,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'full_name' => 'required|string|max:255',
             'login' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
@@ -59,6 +60,7 @@ class AuthController extends Controller
         ]);
 
         $user = new User();
+        $user->name = $validated['name'];
         $user->full_name = $validated['full_name'];
         $user->login = $validated['login'];
         $user->email = $validated['email'];

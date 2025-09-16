@@ -1,7 +1,9 @@
 @php
-use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Facades\Storage;
+
+    $user = auth()->user();
 @endphp
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -15,13 +17,14 @@ use Illuminate\Support\Facades\Storage;
             border: none;
             background: none;
         }
+
         .avatar-dropdown::after {
             display: none;
         }
     </style>
 </head>
 <body>
-    @auth
+@auth
     <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="{{ route('dashboard') }}">Главная</a>
@@ -39,15 +42,16 @@ use Illuminate\Support\Facades\Storage;
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('tasks.index') }}">Задачи</a>
                     </li>
-                    @if(auth()->user()->isHead())
+                    @if($user->isHead())
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('plans.index') }}">Управление планами</a>
                         </li>
                         <li class="nav-item position-relative">
                             <a class="nav-link pe-5 position-relative" href="{{ route('analyticsAi.index') }}">
                                 Анализ
-                                <span class="badge bg-primary rounded-pill position-absolute top-0 end-0 translate-middle d-none d-lg-inline-block"
-                                      style="font-size: 0.65em; margin-top:0.5em ">
+                                <span
+                                    class="badge bg-primary rounded-pill position-absolute top-0 end-0 translate-middle d-none d-lg-inline-block"
+                                    style="font-size: 0.65em; margin-top:0.5em ">
             beta
         </span>
                             </a>
@@ -55,13 +59,18 @@ use Illuminate\Support\Facades\Storage;
                     @endif
                 </ul>
                 <div class="dropdown">
-                    <button class="btn avatar-dropdown" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ auth()->user()->avatar ? Storage::url(auth()->user()->avatar) : asset('storage/avatars/default_avatar.png') }}"
-                             alt="Аватар"
-                             class="rounded-circle"
-                             style="width: 40px; height: 40px; object-fit: cover;">
+                    <button class="btn avatar-dropdown" type="button" id="userDropdown" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        <img
+                            src="{{ $user->avatar ? Storage::url($user->avatar) : asset('storage/avatars/default_avatar.png') }}"
+                            alt="Аватар"
+                            class="rounded-circle"
+                            style="width: 40px; height: 40px; object-fit: cover;">
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li class="m-2">
+                            <span>{{$user->email}}</span>
+                        </li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -73,11 +82,11 @@ use Illuminate\Support\Facades\Storage;
             </div>
         </div>
     </nav>
-    @endauth
-    <div class="container">
-        @yield('content')
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @stack('scripts')
+@endauth
+<div class="container">
+    @yield('content')
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@stack('scripts')
 </body>
 </html>

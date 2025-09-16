@@ -34,7 +34,7 @@ class AnalyticsAiService
                 'week_end' => now()->endOfWeek()->format('d.m.Y'),
                 'total_deals' => $total_deals,
                 'successful_deals' => $successful_deals,
-                'conversion_rate' => round(($successful_deals / $total_deals) * 100, 1),
+                'conversion_rate' => $total_deals != 0 ? round(($successful_deals / $total_deals) * 100, 1) : "?",
                 'revenue' => $revenue,
             ];
         }

@@ -64,10 +64,10 @@
                         <h5 class="card-title">Выручка за месяц</h5>
                         <p class="card-text text-center display-6">{{ number_format($dashboardData['monthlyRevenue'], 2) }}&nbsp;₽</p>
                         <div class="progress">
-                            <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ $dashboardData['percentageCompleted'] }}%;" 
-                                 aria-valuenow="{{ $dashboardData['percentageCompleted'] }}" 
-                                 aria-valuemin="0" 
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: {{ $dashboardData['percentageCompleted'] }}%;"
+                                 aria-valuenow="{{ $dashboardData['percentageCompleted'] }}"
+                                 aria-valuemin="0"
                                  aria-valuemax="100">
                                 {{ round($dashboardData['percentageCompleted'], 2) }}%
                             </div>
@@ -125,7 +125,7 @@
                                     <tbody>
                                         @foreach($dashboardData['employees'] as $employee)
                                             <tr>
-                                                <td>{{ $employee->full_name }}</td>
+                                                <td>{{ "$employee->full_name $employee->name" }}</td>
                                                 <td>
                                                     @if($employee->isWorking())
                                                         <span class="badge bg-success">Работает</span>
@@ -287,10 +287,10 @@
                 // Сохраняем текущую высоту
                 const height = element.offsetHeight;
                 element.style.height = height + 'px';
-                
+
                 // Сначала делаем прозрачным
                 element.style.opacity = '0';
-                
+
                 // Затем плавно уменьшаем высоту
                 setTimeout(() => {
                     element.style.height = '0';
@@ -298,7 +298,7 @@
                     element.style.padding = '0';
                     element.style.overflow = 'hidden';
                 }, 500);
-                
+
                 // Удаляем элемент после завершения анимации
                 setTimeout(() => {
                     element.remove();
@@ -319,4 +319,4 @@
         }
     });
 </script>
-@endpush 
+@endpush

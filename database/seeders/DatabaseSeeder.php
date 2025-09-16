@@ -30,10 +30,22 @@ class DatabaseSeeder extends Seeder
         $manager = User::firstOrCreate(
             ['email' => 'manager@example.com'],
             [
-                'full_name' => 'Иванов Иван Иванович',
+                'name' => 'Иван',
+                'full_name' => 'Иванов',
                 'login' => 'manager',
                 'password' => Hash::make('password'),
                 'role' => 'head'
+            ]
+        );
+#todo: Оставить только для тест окружения
+        User::firstOrCreate(
+            ['email' => 'admin@mail.com'],
+            [
+                'name' => 'Иван',
+                'full_name' => 'Иванов',
+                'login' => 'admin',
+                'password' => Hash::make('admin'),
+                'role' => 'admin'
             ]
         );
 
@@ -44,7 +56,8 @@ class DatabaseSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => 'employee' . $i . '@example.com'],
                 [
-                    'full_name' => 'Сотрудник ' . $i,
+                    'name' => 'Сотрудник ',
+                    'full_name' => $i,
                     'login' => 'employee' . $i,
                     'password' => Hash::make('password'),
                     'role' => 'manager'
@@ -91,6 +104,7 @@ class DatabaseSeeder extends Seeder
                 }
 
                 // С вероятностью 50% создаём рабочую сессию
+                /*
                 if (rand(0, 1)) {
                     WorkSession::create([
                         'user_id' => $user->id,
@@ -98,6 +112,7 @@ class DatabaseSeeder extends Seeder
                         'end_time' => null
                     ]);
                 }
+                */
             }
         });
 

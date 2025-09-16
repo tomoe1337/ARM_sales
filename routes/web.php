@@ -40,83 +40,116 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
- return auth()->check()
- ? redirect()->route('dashboard')
-            : redirect()->route('login');
-    })->name('home');
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
+})->name('home');
 
-    Route::middleware(['guest'])->group(function () {
-        Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-        Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-        Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
-    });
+Route::get('/test', function () {
+    return view('auth.unActivatedUser');
+})->name('unActivatedUser');
 
-    Route::post('/logout', [AuthController::class, 'logout'])
-        ->name('logout')
-        ->middleware('auth');
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 
-    // Защищенные маршруты
+    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
-    Route::middleware(['auth'])->group(function () {
-        // Рабочие сессии
-        Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
-        Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
+    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+
+    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Защищенные маршруты
+Route::middleware(['auth'])->group(function () {
+    // Рабочие сессии
+    Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
+
+    Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
+
+    Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
+
+    Route::middleware(['activated', 'working'])->group(function () {
         Route::get('/work-sessions/report/{user?}', WorkSessionReportController::class)->name('work-sessions.report');
-        Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
-
-    });
-
-    Route::middleware(['auth','working'])->group(function () {
 
         // Клиенты
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
+
         Route::get('/clients/create', ClientCreateController::class)->name('clients.create');
+
         Route::post('/clients', ClientStoreController::class)->name('clients.store');
+
         Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
+
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
+
         Route::put('/clients/{client}', ClientUpdateController::class)->name('clients.update');
+
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
         // Задачи
         Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
+
         Route::get('/tasks/create', TaskCreateController::class)->name('tasks.create');
+
         Route::post('/tasks', TaskStoreController::class)->name('tasks.store');
+
         Route::get('/tasks/{task}', TaskShowController::class)->name('tasks.show');
+
         Route::get('/tasks/{task}/edit', TaskEditController::class)->name('tasks.edit');
+
         Route::put('/tasks/{task}', TaskUpdateController::class)->name('tasks.update');
+
         Route::delete('/tasks/{task}', TaskDestroyController::class)->name('tasks.destroy');
 
         // Сделки
         Route::get('/deals', DealIndexController::class)->name('deals.index');
+
         Route::get('/deals/create', DealCreateController::class)->name('deals.create');
+
         Route::post('/deals', DealStoreController::class)->name('deals.store');
+
         Route::get('/deals/{deal}', DealShowController::class)->name('deals.show');
+
         Route::get('/deals/report/day', DealReportDayController::class)->name('deals.report.day');
+
         Route::delete('/deals/{deal}', \App\Http\Controllers\Deal\DestroyController::class)->name('deals.destroy');
 
         Route::get('/deals/{deal}/edit', DealEditController::class)->name('deals.edit');
+
         Route::put('/deals/{deal}', DealUpdateController::class)->name('deals.update');
 
         Route::get('/deals/report/time', DealReportTimeController::class)->name('deals.report.time');
-    });
 
-    // Только для руководителей
-    Route::middleware(['auth', 'head', 'working'])->group(function () {
-        //планы
-        Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
-        Route::post('/plans', PlanStoreController::class)->name('plans.store');
-        Route::get('/plans', PlanIndexController::class)->name('plans.index');
-        Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
-        Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
-        Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
-        Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
+        // Только для руководителей
+        Route::middleware('head')->group(function () {
+            //планы
+            Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
 
-        //аналитика
-        Route::prefix('analytics/ai')->name('analyticsAi.')->group(function () {
-            Route::get('/', AnalyticsIndexController::class)->name('index');
-            Route::get('/generate', AnalyticsGenerateController::class)->name('generate');
-            Route::get('/{analysisAiReport}', AnalyticsShowController::class)->name('report');
+            Route::post('/plans', PlanStoreController::class)->name('plans.store');
 
+            Route::get('/plans', PlanIndexController::class)->name('plans.index');
+
+            Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
+
+            Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
+
+            Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
+
+            Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
+
+            //аналитика
+            Route::prefix('analytics/ai')->name('analyticsAi.')->group(function () {
+                Route::get('/', AnalyticsIndexController::class)->name('index');
+
+                Route::get('/generate', AnalyticsGenerateController::class)->name('generate');
+
+                Route::get('/{analysisAiReport}', AnalyticsShowController::class)->name('report');
+
+            });
         });
     });
+});
+
+

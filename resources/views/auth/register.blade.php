@@ -11,7 +11,14 @@
                 <form method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
-                        <label for="full_name" class="form-label">ФИО</label>
+                        <label for="name" class="form-label">Имя</label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Фамилия</label>
                         <input type="text" class="form-control @error('full_name') is-invalid @enderror" id="full_name" name="full_name" required>
                         @error('full_name')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -69,4 +76,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

@@ -22,7 +22,12 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         $user = auth()->user();
+
+        if (!$user->is_active){
+            return view('auth.unActivatedUser');
+        }
         $dashboardData = $this->dashboardService->getDashboardData($user);
+
         return view('dashboard', compact('dashboardData'));
     }
 }

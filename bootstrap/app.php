@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'head' => \App\Http\Middleware\CheckHeadRole::class,
             'working' => \App\Http\Middleware\CheckWorkSession::class,
+            'activated' => \App\Http\Middleware\CheckUserActivated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

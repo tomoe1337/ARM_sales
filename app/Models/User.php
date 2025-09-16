@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRolesEnum;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -27,6 +29,7 @@ class User extends Authenticatable
         'status',
         'monthly_plan',
         'daily_plan',
+        'is_active',
     ];
 
     /**
@@ -56,12 +59,12 @@ class User extends Authenticatable
 
     public function isManager(): bool
     {
-        return $this->role === 'manager';
+        return $this->role === UserRolesEnum::MANAGER->value;
     }
 
     public function isHead(): bool
     {
-        return $this->role === 'head';
+        return $this->role === UserRolesEnum::HEAD->value;
     }
 
     public function isWorking(): bool
@@ -77,6 +80,11 @@ class User extends Authenticatable
             ->whereNull('end_time')
             ->latest()
             ->first();
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === UserRolesEnum::ADMIN->value;
     }
 
 }
