@@ -9,11 +9,9 @@ use Illuminate\Http\Request;
 
 class GenerateController extends Controller
 {
-    protected $analyticsAiService;
 
-    public function __construct(AnalyticsAiService $analyticsAiService)
+    public function __construct(private AnalyticsAiService $analyticsAiService)
     {
-        $this->analyticsAiService = $analyticsAiService;
     }
 
     /**
