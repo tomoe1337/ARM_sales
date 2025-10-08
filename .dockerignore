@@ -1,55 +1,45 @@
+# Node modules
+laravel/node_modules
+
+# Vendor
+laravel/vendor
+
+# Environment
+laravel/.env
+laravel/.env.backup
+
+# Storage
+laravel/storage/logs/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+!laravel/storage/logs/.gitkeep
+!laravel/storage/framework/cache/.gitkeep
+!laravel/storage/framework/sessions/.gitkeep
+!laravel/storage/framework/views/.gitkeep
+
 # Git
 .git
+.github
 .gitignore
 .gitattributes
 
 # Documentation
+*.md
 README.md
 DEPLOYMENT.md
-coursework.md
-*.md
+
+# Tests
+tests
+phpunit.xml
 
 # IDE
-.vscode
 .idea
+.vscode
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Docker files
-docker-compose.yml
-docker-compose.*.yml
-Dockerfile
-.dockerignore
-
-# Environment
-.env
-.env.backup
-.env.production
-
-# Scripts
-deploy.sh
-*.sh
-
-# Temporary files
-*.tmp
-*.temp
-*.log
-
-# Laravel specific (will be handled in laravel/.dockerignore)
-laravel/node_modules
-laravel/vendor
-laravel/storage/app/*
-laravel/storage/framework/cache/*
-laravel/storage/framework/sessions/*
-laravel/storage/framework/testing/*
-laravel/storage/framework/views/*
-laravel/storage/logs/*
-laravel/bootstrap/cache/*
-laravel/public/hot
-laravel/public/storage
-laravel/public/css
-laravel/public/js

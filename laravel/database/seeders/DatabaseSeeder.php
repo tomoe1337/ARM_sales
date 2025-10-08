@@ -20,9 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            ClientOrderSeeder::class,
-        ]);
+        // Отключен ClientOrderSeeder
+        // $this->call([
+        //     ClientOrderSeeder::class,
+        // ]);
         
         $faker = Faker::create('ru_RU');
 
