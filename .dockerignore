@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+DEPLOYMENT.md
+coursework.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker files
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.dockerignore
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Scripts
+deploy.sh
+*.sh
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Laravel specific (will be handled in laravel/.dockerignore)
+laravel/node_modules
+laravel/vendor
+laravel/storage/app/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/testing/*
+laravel/storage/framework/views/*
+laravel/storage/logs/*
+laravel/bootstrap/cache/*
+laravel/public/hot
+laravel/public/storage
+laravel/public/css
+laravel/public/js
