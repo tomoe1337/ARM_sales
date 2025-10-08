@@ -115,18 +115,78 @@ class AnalyticsAiService
             ]
         ];
         $proxyapi_token = env('AI_API_TOKEN');
-        $content = json_decode(file_get_contents(__DIR__ . '/generate.json'), true);
+        $content = null;
 
-        $real = true; //todo:убрать мок
+        $real = !empty($proxyapi_token); // Используем API только если токен установлен
+        
         if ($real) {
-            $response = Http::withOptions(['verify' => false])
-                ->withHeaders([
-                    'Authorization' => "Bearer {$proxyapi_token}",
-                    'Content-Type' => 'application/json',])
-                ->post($uri, $payload);
+            try {
+                $response = Http::withOptions(['verify' => false])
+                    ->timeout(60)
+                    ->withHeaders([
+                        'Authorization' => "Bearer {$proxyapi_token}",
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post($uri, $payload);
 
-            $content = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? null;
-            $content = json_decode($content, true);
+                // Логируем ответ для отладки
+                \Log::info('AI API Response', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                if ($response->successful()) {
+                    $responseData = $response->json();
+                    
+                    if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
+                        $textContent = $responseData['candidates'][0]['content']['parts'][0]['text'];
+                        $content = json_decode($textContent, true);
+                        
+                        // Проверяем что декодирование прошло успешно
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            \Log::error('AI API JSON decode error', [
+                                'error' => json_last_error_msg(),
+                                'content' => $textContent
+                            ]);
+                            $content = null;
+                        }
+                    } else {
+                        \Log::error('AI API unexpected response structure', [
+                            'response' => $responseData
+                        ]);
+                    }
+                } else {
+                    \Log::error('AI API request failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body()
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('AI API Exception', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
+        
+        // Если API не вернула данные, используем моковые данные
+        if ($content === null || !isset($content['done_well'])) {
+            \Log::warning('Using mock data for AI report');
+            
+            // Пробуем загрузить моковые данные из файла
+            $mockFile = __DIR__ . '/generate.json';
+            if (file_exists($mockFile)) {
+                $content = json_decode(file_get_contents($mockFile), true);
+            }
+            
+            // Если файла нет или он пустой, используем дефолтные данные
+            if ($content === null || !isset($content['done_well'])) {
+                $content = [
+                    'done_well' => 'Данные отчета недоступны. Проверьте настройки AI_API_TOKEN в .env файле или создайте файл generate.json с моковыми данными.',
+                    'done_bad' => 'Невозможно провести анализ без данных от AI API.',
+                    'general_result' => 'Отчет не может быть сгенерирован. Настройте AI_API_TOKEN для использования автоматической генерации отчетов.'
+                ];
+            }
         }
         $orders = $orders->toArray();
         $employeeStats = $this->getEmployeeResults($orders);

@@ -37,6 +37,6 @@ class ShowController extends Controller
         ];
         $employeeStats = $data['employee_stats'];
 
-        return view('analyticsAi.report', compact('analysis', 'funnel', 'employeeStats'));
+        return view('analyticsAI.report', compact('analysis', 'funnel', 'employeeStats'));
     }
 }
