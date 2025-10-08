@@ -18,7 +18,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            min-height: 50px;
+            min-height: 60px;
             box-sizing: border-box;
             transition: all 0.3s ease-in-out;
             z-index: 1;
@@ -27,26 +27,37 @@
             align-items: center;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%);
+            padding: 8px 15px;
             /* делаем трапецию */
         }
 
-        /* Цвета по статусам */
+        /* Цвета по статусам - динамические */
         .funnel-step:nth-child(1) {
-            background-color: #6c757d; /* Все лиды */
-            top: 0;
-            clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%);
+            background-color: #6c757d; /* Первый уровень - серый */
         }
         .funnel-step:nth-child(2) {
-            background-color: #0dcaf0; /* В работе */
-            top: 80px;
+            background-color: #0dcaf0; /* Синий */
         }
         .funnel-step:nth-child(3) {
-            background-color: #198754; /* Выиграно */
-            top: 160px;
+            background-color: #198754; /* Зеленый */
         }
         .funnel-step:nth-child(4) {
-            background-color: #dc3545; /* Проиграно */
-            top: 240px;
+            background-color: #ffc107; /* Желтый */
+        }
+        .funnel-step:nth-child(5) {
+            background-color: #dc3545; /* Красный */
+        }
+        .funnel-step:nth-child(6) {
+            background-color: #6610f2; /* Фиолетовый */
+        }
+        .funnel-step:nth-child(7) {
+            background-color: #fd7e14; /* Оранжевый */
+        }
+        .funnel-step:nth-child(8) {
+            background-color: #20c997; /* Бирюзовый */
+        }
+        .funnel-step:nth-child(n+9) {
+            background-color: #adb5bd; /* Для остальных - серый */
         }
 
         .funnel-step .funnel-label {
@@ -59,28 +70,31 @@
 
         .funnel-step .stage-name {
             display: block;
-            font-size: 1rem;
-            margin-bottom: 4px;
+            font-size: 1.05rem;
+            margin-bottom: 5px;
+            line-height: 1.3;
+            word-break: break-word;
         }
 
         .funnel-step .badge {
             display: inline-block;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(0, 0, 0, 0.4);
             color: white;
-            font-size: 0.9rem;
-            padding: 0.3em 0.6em;
-            min-width: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.4em 0.8em;
+            min-width: 50px;
+            border-radius: 4px;
         }
 
         @media (max-width: 768px) {
             .funnel-step {
                 clip-path: polygon(8% 0%, 92% 0%, 90% 100%, 10% 100%);
             }
-
-            .funnel-step:nth-child(1) { top: 0; }
-            .funnel-step:nth-child(2) { top: 90px; }
-            .funnel-step:nth-child(3) { top: 180px; }
-            .funnel-step:nth-child(4) { top: 270px; }
+            
+            .funnel {
+                padding-bottom: 20px;
+            }
         }
     </style>
 
@@ -100,22 +114,26 @@
             <div class="col-md-6">
                 <h4>📊 Воронка продаж за неделю</h4>
 
-                <div class="funnel mt-3">
+                <div class="funnel mt-3" style="height: {{ max(360, count($funnel) * 80) }}px">
                     @php
-                        $funnel = [
-                            ['name' => 'Все лиды', 'count' => $funnel['all_leads'] ?? 0],
-                            ['name' => 'В работе', 'count' => $funnel['in_progress'] ?? 0],
-                            ['name' => 'Выиграно', 'count' => $funnel['won'] ?? 0],
-                            ['name' => 'Проиграно', 'count' => $funnel['lost'] ?? 0],
-                        ];
-
-                        $maxCount = max(array_column($funnel, 'count')) ?: 1;
+                        // $funnel уже приходит из контроллера как коллекция с динамическими статусами
+                        $funnelArray = $funnel->toArray();
+                        $maxCount = max(array_column($funnelArray, 'count')) ?: 1;
+                        $stepHeight = 80; // высота одного шага в пикселях
+                        $minWidth = 45; // минимальная ширина в процентах
+                        $maxWidth = 95; // максимальная ширина в процентах
                     @endphp
 
-                    @foreach ($funnel as $index => $step)
-                        <div class="funnel-step" style="width: {{ ($step['count'] / $maxCount) * 100 }}%">
+                    @foreach ($funnelArray as $index => $step)
+                        @php
+                            // Вычисляем ширину: от minWidth до maxWidth в зависимости от значения
+                            $ratio = $step['count'] / $maxCount;
+                            $calculatedWidth = $minWidth + ($ratio * ($maxWidth - $minWidth));
+                        @endphp
+                        <div class="funnel-step" 
+                             style="width: {{ $calculatedWidth }}%; top: {{ $index * $stepHeight }}px">
                             <div class="funnel-label">
-                                <span class="stage-name">{{ $step['name'] }}</span>
+                                <span class="stage-name">{{ ucfirst($step['name']) }}</span>
                                 <span class="badge bg-dark">{{ $step['count'] }}</span>
                             </div>
                         </div>
