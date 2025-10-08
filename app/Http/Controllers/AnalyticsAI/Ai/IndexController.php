@@ -34,8 +34,8 @@ class IndexController extends Controller
                     'id' => $report->id,
                     'week_start' => Carbon::parse($report->start_date)->format('d.m.Y'),
                     'week_end' => Carbon::parse($report->end_date)->format('d.m.Y'),
-                    'total_deals' => $report->total_leads,
-                    'successful_deals' => $report->won_count,
+                    'total_leads' => $report->total_leads, // Общее количество лидов
+                    'total_orders' => $report->won_count, // Количество заказов
                     'conversion_rate' => $report->total_leads > 0
                         ? number_format(($report->won_count / $report->total_leads) * 100, 1) . '%'
                         : '0%',

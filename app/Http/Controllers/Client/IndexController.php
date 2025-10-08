@@ -14,9 +14,9 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $deals = Client::all();
+        $clients = Client::all();
 
-        return view('clients.index', compact('deals'));
+        return view('clients.index', compact('clients'));
     }
 
     /**

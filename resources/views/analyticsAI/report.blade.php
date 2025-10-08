@@ -131,8 +131,8 @@
                         <thead class="table-light">
                         <tr>
                             <th>Сотрудник</th>
-                            <th>Всего сделок</th>
-                            <th>Выигранные</th>
+                            <th>Всего лидов</th>
+                            <th>Заказов</th>
                             <th>Конверсия</th>
                         </tr>
                         </thead>

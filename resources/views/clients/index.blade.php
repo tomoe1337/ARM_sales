@@ -28,14 +28,61 @@
                             <th>Имя</th>
                             <th>Телефон</th>
                             <th>Email</th>
+                            <th>Город</th>
+                            <th>Статус CRM</th>
+                            <th>Посл. контакт</th>
+                            <th>BlueSales</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
-                    <tbody>                        @foreach($deals as $client)
+                    <tbody>                        @foreach($clients as $client)
                             <tr>
-                                <td>{{ $client->name }}</td>
+                                <td>
+                                    <div><strong>{{ $client->name }}</strong></div>
+                                    @if($client->full_name && $client->full_name !== $client->name)
+                                        <small class="text-muted">{{ $client->full_name }}</small>
+                                    @endif
+                                </td>
                                 <td>{{ $client->phone }}</td>
                                 <td>{{ $client->email }}</td>
+                                <td>
+                                    @if($client->city || $client->country)
+                                        {{ $client->city }}@if($client->city && $client->country), @endif{{ $client->country }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($client->crm_status)
+                                        <span class="badge bg-secondary">{{ $client->crm_status }}</span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($client->last_contact_date)
+                                        {{ $client->last_contact_date->format('d.m.Y') }}
+                                        @if($client->last_contact_date->diffInDays() > 30)
+                                            <br><small class="text-danger">Давно</small>
+                                        @elseif($client->last_contact_date->diffInDays() > 7)
+                                            <br><small class="text-warning">Недавно</small>
+                                        @else
+                                            <br><small class="text-success">Недавно</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($client->bluesales_id)
+                                        <span class="badge bg-info" title="Синхронизирован с BlueSales">BS</span>
+                                        @if($client->bluesales_last_sync)
+                                            <br><small class="text-muted">{{ $client->bluesales_last_sync->format('d.m.Y H:i') }}</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <a href="{{ route('clients.show', $client) }}" class="btn btn-sm btn-info">Просмотр</a>
                                     <a href="{{ route('clients.edit', $client) }}" class="btn btn-sm btn-warning">Редактировать</a>

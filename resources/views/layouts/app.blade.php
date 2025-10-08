@@ -37,6 +37,9 @@
                         <a class="nav-link" href="{{ route('deals.index') }}">Сделки</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('orders.index') }}">Заказы</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('clients.index') }}">Клиенты</a>
                     </li>
                     <li class="nav-item">
@@ -54,6 +57,11 @@
                                     style="font-size: 0.65em; margin-top:0.5em ">
             beta
         </span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('bluesales.sync.form') }}">
+                                <i class="fas fa-sync-alt"></i> BlueSales
                             </a>
                         </li>
                     @endif

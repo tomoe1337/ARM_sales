@@ -12,6 +12,7 @@ use App\Http\Controllers\Client\ShowController as ClientShowController;
 use App\Http\Controllers\Client\StoreController as ClientStoreController;
 use App\Http\Controllers\Client\UpdateController as ClientUpdateController;
 use App\Http\Controllers\Dashboard\IndexController as DashboardIndexController;
+use App\Http\Controllers\BlueSales\SyncController as BlueSalesSyncController;
 use App\Http\Controllers\Deal\CreateController as DealCreateController;
 use App\Http\Controllers\Deal\EditController as DealEditController;
 use App\Http\Controllers\Deal\IndexController as DealIndexController;
@@ -20,6 +21,14 @@ use App\Http\Controllers\Deal\Report\TimeController as DealReportTimeController;
 use App\Http\Controllers\Deal\ShowController as DealShowController;
 use App\Http\Controllers\Deal\StoreController as DealStoreController;
 use App\Http\Controllers\Deal\UpdateController as DealUpdateController;
+use App\Http\Controllers\Order\CreateController as OrderCreateController;
+use App\Http\Controllers\Order\EditController as OrderEditController;
+use App\Http\Controllers\Order\IndexController as OrderIndexController;
+use App\Http\Controllers\Order\Report\DayController as OrderReportDayController;
+use App\Http\Controllers\Order\Report\TimeController as OrderReportTimeController;
+use App\Http\Controllers\Order\ShowController as OrderShowController;
+use App\Http\Controllers\Order\StoreController as OrderStoreController;
+use App\Http\Controllers\Order\UpdateController as OrderUpdateController;
 use App\Http\Controllers\Plan\CreateController as PlanCreateController;
 use App\Http\Controllers\Plan\EditController as PlanEditController;
 use App\Http\Controllers\Plan\IndexController as PlanIndexController;
@@ -122,6 +131,25 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/deals/report/time', DealReportTimeController::class)->name('deals.report.time');
 
+        // Заказы
+        Route::get('/orders', OrderIndexController::class)->name('orders.index');
+
+        Route::get('/orders/create', OrderCreateController::class)->name('orders.create');
+
+        Route::post('/orders', OrderStoreController::class)->name('orders.store');
+
+        Route::get('/orders/{order}', OrderShowController::class)->name('orders.show');
+
+        Route::get('/orders/report/day', OrderReportDayController::class)->name('orders.report.day');
+
+        Route::delete('/orders/{order}', \App\Http\Controllers\Order\DestroyController::class)->name('orders.destroy');
+
+        Route::get('/orders/{order}/edit', OrderEditController::class)->name('orders.edit');
+
+        Route::put('/orders/{order}', OrderUpdateController::class)->name('orders.update');
+
+        Route::get('/orders/report/time', OrderReportTimeController::class)->name('orders.report.time');
+
         // Только для руководителей
         Route::middleware('head')->group(function () {
             //планы
@@ -148,6 +176,10 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/{analysisAiReport}', AnalyticsShowController::class)->name('report');
 
             });
+
+            // BlueSales синхронизация
+            Route::get('/bluesales/sync', [BlueSalesSyncController::class, 'showSyncForm'])->name('bluesales.sync.form');
+            Route::post('/bluesales/sync', [BlueSalesSyncController::class, 'sync'])->name('bluesales.sync');
         });
     });
 });

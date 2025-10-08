@@ -79,9 +79,9 @@
             <div class="col-md-3">
                 <div class="card bg-success text-white">
                     <div class="card-body">
-                        <h5 class="card-title">Выигранные сделки</h5>
+                        <h5 class="card-title">Оплаченные заказы</h5>
                         <h2 class="card-text">{{ $dashboardData['wonDealsCount'] }}</h2>
-                        <a href="{{ route('deals.index', ['status' => 'won']) }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ route('orders.index') }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -90,7 +90,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Выручка за сегодня</h5>
                         <h2 class="card-text">{{ number_format($dashboardData['todayRevenue'], 2) }}&nbsp;₽</h2>
-                        <a href="{{ route('deals.index', ['status' => 'won']) }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ route('orders.index') }}" class="text-white">Подробнее <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -154,30 +154,40 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Последние сделки</h5>
-                        <a href="{{ route('deals.index') }}" class="btn btn-primary btn-sm">Все сделки</a>
+                        <h5 class="mb-0">Последние заказы</h5>
+                        <a href="{{ route('orders.index') }}" class="btn btn-primary btn-sm">Все заказы</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Название</th>
+                                        <th>ID BlueSales</th>
                                         <th>Клиент</th>
                                         <th>Сумма</th>
                                         <th>Статус</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($dashboardData['latestDeals'] as $deal)
+                                    @foreach($dashboardData['latestOrders'] as $order)
                                         <tr>
-                                            <td><a href="{{ route('deals.show', $deal) }}">{{ $deal->title }}</a></td>
-                                            <td>{{ $deal->client->name }}</td>
-                                            <td>{{ number_format($deal->amount, 2) }} ₽</td>
+                                            <td><a href="{{ route('orders.show', $order) }}">{{ $order->bluesales_id }}</a></td>
+                                            <td>{{ $order->client->name }}</td>
+                                            <td>{{ number_format($order->total_amount, 2) }} ₽</td>
                                             <td>
-                                                <span class="badge bg-{{ $deal->status == 'won' ? 'success' : ($deal->status == 'lost' ? 'danger' : 'warning') }}">
-                                                    {{ $deal->status == 'won' ? 'Выиграна' : ($deal->status == 'lost' ? 'Проиграна' : 'В работе') }}
-                                                </span>
+                                                @switch($order->status)
+                                                    @case('new')
+                                                        <span class="badge bg-secondary">Новый</span>
+                                                        @break
+                                                    @case('delivered')
+                                                        <span class="badge bg-success">Доставлен</span>
+                                                        @break
+                                                    @case('cancelled')
+                                                        <span class="badge bg-danger">Отменен</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge bg-warning">В работе</span>
+                                                @endswitch
                                             </td>
                                         </tr>
                                     @endforeach
@@ -202,7 +212,7 @@
                                         <th>Имя</th>
                                         <th>Телефон</th>
                                         <th>Email</th>
-                                        <th>Сделок</th>
+                                        <th>Заказов</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -211,7 +221,7 @@
                                             <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ $client->email }}</td>
-                                            <td>{{ $client->deals_count }}</td>
+                                            <td>{{ $client->orders_count }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

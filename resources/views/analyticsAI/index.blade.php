@@ -30,8 +30,8 @@
                 <div class="col-md-3">
                     <div class="card border-start border-primary border-4 h-100">
                         <div class="card-body">
-                            <h6 class="text-muted">Всего сделок</h6>
-                            <h3 class="fw-bold">{{ number_format($weeklyReport['total_deals'] ?? 0, 0, '', ' ') }}</h3>
+                            <h6 class="text-muted">Всего лидов</h6>
+                            <h3 class="fw-bold">{{ number_format($weeklyReport['total_leads'] ?? 0, 0, '', ' ') }}</h3>
                         </div>
                     </div>
                 </div>
@@ -39,8 +39,8 @@
                 <div class="col-md-3">
                     <div class="card border-start border-success border-4 h-100">
                         <div class="card-body">
-                            <h6 class="text-muted">Успешных сделок</h6>
-                            <h3 class="fw-bold">{{ number_format($weeklyReport['successful_deals'] ?? 0, 0, '', ' ') }}</h3>
+                            <h6 class="text-muted">Заказов</h6>
+                            <h3 class="fw-bold">{{ number_format($weeklyReport['total_orders'] ?? 0, 0, '', ' ') }}</h3>
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,8 @@
                     <div class="card border-start border-info border-4 h-100">
                         <div class="card-body">
                             <h6 class="text-muted">Конверсия</h6>
-                            <h3 class="fw-bold">{{ $weeklyReport['conversion_rate'] ?? '—' }}%</h3>
+                            <h3 class="fw-bold">{{ $weeklyReport['conversion_rate'] ?? 0 }}%</h3>
+                            <small class="text-muted">лидов в заказы</small>
                         </div>
                     </div>
                 </div>
@@ -88,7 +89,8 @@
                             <thead class="table-light">
                             <tr>
                                 <th>Период</th>
-                                <th>Сделки</th>
+                                <th>Лиды</th>
+                                <th>Заказы</th>
                                 <th>Выручка</th>
                                 <th>Конверсия</th>
                                 <th class="text-end">Действия</th>
@@ -98,9 +100,10 @@
                             @foreach ($previousReports as $report)
                                 <tr>
                                     <td>{{ $report['week_start'] }} – {{ $report['week_end'] }}</td>
-                                    <td>{{ number_format($report['successful_deals'], 0, '', ' ') }} / {{ number_format($report['total_deals'], 0, '', ' ') }}</td>
+                                    <td>{{ number_format($report['total_leads'], 0, '', ' ') }}</td>
+                                    <td>{{ number_format($report['total_orders'], 0, '', ' ') }}</td>
                                     <td>{{ number_format($report['revenue'], 0, '', ' ') }} ₽</td>
-                                    <td>{{ $report['conversion_rate'] }}%</td>
+                                    <td>{{ $report['conversion_rate'] }}</td>
                                     <td class="text-end">
                                         <a href="{{ route('analyticsAi.report', ['analysisAiReport' => $report['id']]) }}" class="btn btn-sm btn-outline-primary">Просмотр</a>
                                     </td>

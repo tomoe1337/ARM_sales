@@ -23,6 +23,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('orders.index') }}">
+                            <i class="fas fa-shopping-cart"></i> Заказы
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('clients.index') }}">
                             <i class="fas fa-users"></i> Клиенты
                         </a>
