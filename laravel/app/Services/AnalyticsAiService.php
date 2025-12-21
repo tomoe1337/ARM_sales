@@ -25,16 +25,16 @@ class AnalyticsAiService
                 'users.full_name as employee_name'
             )
             ->get();
-            
+
         if ($array_output) {
             // Получаем клиентов (лидов) за неделю
             $clients = $this->getClientsData();
             $total_leads = count($clients);
             $total_orders = $orders->count();
             // Поскольку все заказы BlueSales считаются оплаченными
-            $successful_orders = $orders->count(); 
+            $successful_orders = $orders->count();
             $revenue = $orders->sum('total_amount');
-            
+
             // Конверсия лидов в заказы
             $conversion_rate = $total_leads > 0 ? round(($total_orders / $total_leads) * 100, 1) : 0;
 
@@ -58,12 +58,12 @@ class AnalyticsAiService
         $orders = $this->getWeeklyReportData();
         $clients = $this->getClientsData();
         $total_revenue = $orders->sum('total_amount');
-        
+
         $reportData = [
             'orders' => $orders->toArray(),
             'clients' => $clients
         ];
-        
+
         $baseReport = json_encode($reportData);
         $payload = [
             "contents" => [
@@ -73,12 +73,12 @@ class AnalyticsAiService
                         [
                             "text" => 'Ты — эксперт по аналитике продаж в компании которая работает с заказами из CRM BlueSales. На основе предоставленных данных о заказах и клиентах отдела продаж за эту неделю, проведи глубокий анализ и выдели:
 Что сделано хорошо: перечисли 2–3 ключевых достижения команды, которые действительно способствовали росту выручки или повышению эффективности. Объясни, почему это важно и насколько это лучше средних показателей.
-Что сделано плохо: выяви 2–3 скрытые проблемы или слабые места, которые напрямую связаны именно с работой отдела продаж и которые напрямую влияют на снижение выручки или увеличение времени закрытия сделок. Опираясь на данные, объясни, почему эти проблемы критичны.
+Что сделано плохо: выяви 2–3 скрытые проблемы или слабые места, которые напрямую связаны именно с работой отдела продаж и которые напрямую влияют на снижение выручки или увеличение времени закрытия сделок. Опираясь на данные, объясни, почему эти проблемы критичны.Особое внимание удели тому как клиенты проходят по воронке, насколько долго идут.Можешь так же обращать внимание на то, что сам считаешь нужным для анализа.
 Итоговый результат и рекомендации: дай общую оценку эффективности отдела по шкале от 1 до 10 и предложи 3 конкретных действия, которые можно внедрить в ближайшие 4–6 недель для улучшения выручки. Каждое действие должно быть:
 основано на фактических данных
 выполнимым без крупных изменений в структуре
 с примерным ожидаемым эффектом (например, +15% к конверсии)
-Не используй общие фразы вроде "нужно лучше работать с клиентами". Фокусируйся только на том, что неочевидно из простого просмотра CRM и может стать точкой роста при правильной корректировке.Добавить: "Помни, что данные поступают из CRM BlueSales, где часто в большенстве компаний каждый заказ = факт оплаты, 
+Не используй общие фразы вроде "нужно лучше работать с клиентами". Фокусируйся только на том, что неочевидно из простого просмотра CRM и может стать точкой роста при правильной корректировке.Добавить: "Помни, что данные поступают из CRM BlueSales, где часто в большенстве компаний каждый заказ = факт оплаты,
 а клиенты изначально являются лидами с разными статусами конверсии.Отвечай только на русском. Ответ дай в виде json с полями done_well (что сделано хорошо), done_bad(что сделано плохо), general_result(Итоговая оценка и рекомендации)']
                     ]
                 ],
@@ -118,7 +118,7 @@ class AnalyticsAiService
         $content = null;
 
         $real = !empty($proxyapi_token); // Используем API только если токен установлен
-        
+
         if ($real) {
             try {
                 $response = Http::withOptions(['verify' => false])
@@ -137,11 +137,11 @@ class AnalyticsAiService
 
                 if ($response->successful()) {
                     $responseData = $response->json();
-                    
+
                     if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
                         $textContent = $responseData['candidates'][0]['content']['parts'][0]['text'];
                         $content = json_decode($textContent, true);
-                        
+
                         // Проверяем что декодирование прошло успешно
                         if (json_last_error() !== JSON_ERROR_NONE) {
                             \Log::error('AI API JSON decode error', [
@@ -168,17 +168,17 @@ class AnalyticsAiService
                 ]);
             }
         }
-        
+
         // Если API не вернула данные, используем моковые данные
         if ($content === null || !isset($content['done_well'])) {
             \Log::warning('Using mock data for AI report');
-            
+
             // Пробуем загрузить моковые данные из файла
             $mockFile = __DIR__ . '/generate.json';
             if (file_exists($mockFile)) {
                 $content = json_decode(file_get_contents($mockFile), true);
             }
-            
+
             // Если файла нет или он пустой, используем дефолтные данные
             if ($content === null || !isset($content['done_well'])) {
                 $content = [
@@ -190,11 +190,11 @@ class AnalyticsAiService
         }
         $orders = $orders->toArray();
         $employeeStats = $this->getEmployeeResults($orders);
-        
+
         // Получаем клиентов для подсчета лидов
         $totalLeads = count($this->getClientsData());
         $totalOrders = count($orders);
-        
+
         $AnalysisAiReport = AnalysisAiReport::create([
             'user_id' => auth()->user()->id,
             'report_type' => 'weekly',
@@ -219,13 +219,13 @@ class AnalyticsAiService
     {
         // Получаем всех клиентов (лидов) за неделю
         $clients = $this->getClientsData();
-        
+
         $stats = [];
-        
+
         // Сначала считаем лидов по сотрудникам
         foreach ($clients as $client) {
             $employeeName = isset($client['user']) ? $client['user']['full_name'] : 'Неизвестный';
-            
+
             if (!isset($stats[$employeeName])) {
                 $stats[$employeeName] = [
                     'name' => $employeeName,
@@ -234,14 +234,14 @@ class AnalyticsAiService
                     'revenue' => 0
                 ];
             }
-            
+
             $stats[$employeeName]['total_leads']++;
         }
-        
+
         // Затем считаем заказы по сотрудникам
         foreach ($orders as $order) {
             $employeeName = $order['employee_name'];
-            
+
             if (!isset($stats[$employeeName])) {
                 $stats[$employeeName] = [
                     'name' => $employeeName,
@@ -250,17 +250,17 @@ class AnalyticsAiService
                     'revenue' => 0
                 ];
             }
-            
+
             $stats[$employeeName]['orders']++;
             $stats[$employeeName]['revenue'] += (float)$order['total_amount'];
         }
-        
+
         // Преобразуем в формат для отображения
         $employeeStats = array_values(array_map(function ($stat) {
-            $conversionRate = $stat['total_leads'] > 0 
-                ? round(($stat['orders'] / $stat['total_leads']) * 100, 1) 
+            $conversionRate = $stat['total_leads'] > 0
+                ? round(($stat['orders'] / $stat['total_leads']) * 100, 1)
                 : 0;
-                
+
             return [
                 'name' => $stat['name'],
                 'total' => $stat['total_leads'], // Общее количество лидов
@@ -281,7 +281,7 @@ class AnalyticsAiService
             })
             ->select([
                 'full_name',
-                'city', 
+                'city',
                 'crm_status',
                 'first_contact_date',
                 'next_contact_date',
@@ -296,7 +296,7 @@ class AnalyticsAiService
             ->with('user:id,full_name')
             ->get()
             ->toArray();
-            
+
         return $clients;
     }
 }
