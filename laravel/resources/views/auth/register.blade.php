@@ -46,17 +46,6 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label for="role" class="form-label">Должность</label>
-                        <select class="form-control @error('role') is-invalid @enderror" id="role" name="role" required>
-                            <option value="">Выберите должность</option>
-                            <option value="manager">Менеджер</option>
-                            <option value="head">Руководитель</option>
-                        </select>
-                        @error('role')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
                         <label for="password" class="form-label">Пароль</label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" required>
                         @error('password')

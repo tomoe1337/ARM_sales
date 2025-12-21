@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Models\Organization;
+use App\Models\Department;
+use App\Enums\UserRolesEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,28 +58,53 @@ class AuthController extends Controller
             'login' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:manager,head',
             'avatar' => 'nullable|image|max:2048',
         ]);
 
-        $user = new User();
-        $user->name = $validated['name'];
-        $user->full_name = $validated['full_name'];
-        $user->login = $validated['login'];
-        $user->email = $validated['email'];
-        $user->password = Hash::make($validated['password']);
-        $user->role = $validated['role'];
+        // Создаем организацию с автоматическим названием (как в BlueSales)
+        $organization = Organization::create([
+            'name' => 'Организация ' . $validated['email'],
+            'email' => $validated['email'],
+            'is_active' => true,
+            'is_single_department' => true, // По умолчанию один отдел
+        ]);
 
+        // Создаем отдел (название = название организации + " - Отдел продаж")
+        $department = Department::create([
+            'organization_id' => $organization->id,
+            'name' => $organization->name . ' - Отдел продаж',
+            'is_active' => true,
+        ]);
+
+        // Создаем пользователя (руководитель отдела)
+        $user = User::create([
+            'name' => $validated['name'],
+            'full_name' => $validated['full_name'],
+            'login' => $validated['login'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => UserRolesEnum::HEAD->value,
+            'organization_id' => $organization->id,
+            'department_id' => $department->id,
+            'is_active' => true,
+            'activated_at' => now(),
+        ]);
+
+        // Загрузка аватара (если есть)
         if ($request->hasFile('avatar')) {
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
+            $user->save();
         }
 
-        $user->save();
+        // Устанавливаем руководителя отдела
+        $department->update(['head_id' => $user->id]);
 
+        // Автоматический вход
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')
+            ->with('success', 'Регистрация успешна! Вы можете переименовать организацию в настройках.');
     }
 
     public function logout(Request $request)

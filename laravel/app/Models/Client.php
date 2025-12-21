@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Client extends Model
 {
@@ -16,6 +18,8 @@ class Client extends Model
         'address',
         'description',
         'user_id',
+        'organization_id',
+        'department_id',
         // BlueSales integration fields
         'bluesales_id',
         'full_name',
@@ -45,9 +49,20 @@ class Client extends Model
         'bluesales_last_sync' => 'datetime',
     ];
 
-    public function user()
+    // Связи
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function tasks()
@@ -63,5 +78,24 @@ class Client extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    // Global Scope для автоматической фильтрации
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+
+        // Автоматическое заполнение organization_id и department_id при создании
+        static::creating(function ($client) {
+            if (auth()->check()) {
+                $user = auth()->user();
+                if (!$client->organization_id && $user->organization_id) {
+                    $client->organization_id = $user->organization_id;
+                }
+                if (!$client->department_id && $user->department_id) {
+                    $client->department_id = $user->department_id;
+                }
+            }
+        });
     }
 }

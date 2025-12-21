@@ -6,6 +6,7 @@ use App\Enums\UserRolesEnum;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,13 +24,19 @@ class User extends Authenticatable implements FilamentUser
      */
     protected $fillable = [
         'name',
+        'full_name',
+        'login',
         'email',
         'password',
         'role',
         'status',
         'monthly_plan',
         'daily_plan',
+        'organization_id',
+        'department_id',
         'is_active',
+        'activated_at',
+        'avatar',
     ];
 
     /**
@@ -50,7 +57,20 @@ class User extends Authenticatable implements FilamentUser
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean',
+        'activated_at' => 'datetime',
     ];
+
+    // Связи с мультитенантностью
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
 
     public function workSessions(): HasMany
     {
@@ -64,7 +84,26 @@ class User extends Authenticatable implements FilamentUser
 
     public function isHead(): bool
     {
-        return $this->role === UserRolesEnum::HEAD->value;
+        return $this->role === UserRolesEnum::HEAD->value 
+            && $this->department_id !== null;
+    }
+
+    public function isOrganizationAdmin(): bool
+    {
+        return $this->role === UserRolesEnum::ADMIN->value 
+            && $this->department_id === null; // Супер-админ без привязки к отделу
+    }
+
+    // Проверка принадлежности к отделу
+    public function belongsToDepartment(int $departmentId): bool
+    {
+        return $this->department_id === $departmentId;
+    }
+
+    // Проверка принадлежности к организации
+    public function belongsToOrganization(int $organizationId): bool
+    {
+        return $this->organization_id === $organizationId;
     }
 
     public function isWorking(): bool
@@ -84,7 +123,12 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === UserRolesEnum::ADMIN->value;
+        // Доступ имеют: админы, руководители отделов и менеджеры
+        return in_array($this->role, [
+            UserRolesEnum::ADMIN->value,
+            UserRolesEnum::HEAD->value,
+            UserRolesEnum::MANAGER->value,
+        ]);
     }
 
 }

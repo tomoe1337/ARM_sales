@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Deal extends Model
 {
@@ -17,6 +19,8 @@ class Deal extends Model
         'closed_at',
         'user_id',
         'client_id',
+        'organization_id',
+        'department_id',
     ];
 
     protected $casts = [
@@ -24,14 +28,25 @@ class Deal extends Model
         'closed_at' => 'datetime',
     ];
 
-    public function client()
+    // Связи
+    public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function canView(User $user)
@@ -47,5 +62,24 @@ class Deal extends Model
     public function canDelete(User $user)
     {
         return $user->isHead() || $this->user_id === $user->id;
+    }
+
+    // Global Scope для автоматической фильтрации
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+
+        // Автоматическое заполнение organization_id и department_id при создании
+        static::creating(function ($deal) {
+            if (auth()->check()) {
+                $user = auth()->user();
+                if (!$deal->organization_id && $user->organization_id) {
+                    $deal->organization_id = $user->organization_id;
+                }
+                if (!$deal->department_id && $user->department_id) {
+                    $deal->department_id = $user->department_id;
+                }
+            }
+        });
     }
 }
