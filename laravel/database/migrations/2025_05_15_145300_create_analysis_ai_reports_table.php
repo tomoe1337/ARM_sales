@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('in_progress_count')->default(0);
             $table->integer('won_count')->default(0);
             $table->integer('lost_count')->default(0);
-            $table->decimal('revenue')->default(0);
+            $table->decimal('revenue',15,2)->default(0);
 
             // Детали
             $table->json('employee_stats'); // JSON массив
