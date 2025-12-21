@@ -1,0 +1,24 @@
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.fleet/
+.zed/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel public vendor (published assets)
+laravel/public/vendor/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
