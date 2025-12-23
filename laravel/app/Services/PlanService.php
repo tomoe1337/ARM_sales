@@ -9,7 +9,11 @@ class PlanService
 {
     public function getPlansData(): array
     {
-        $managers = User::where('role', 'manager')->get();
+        // Используем локальный scope для фильтрации по контексту пользователя
+        $managers = User::forCurrentUserContext()
+            ->managers()
+            ->get();
+        
         $plans = Plan::whereIn('user_id', $managers->pluck('id'))->get()->keyBy('user_id');
 
         $totalMonthlyPlan = $plans->sum('monthly_plan');
@@ -20,7 +24,12 @@ class PlanService
 
     public function createPlan(array $data): Plan
     {
-        $data['user_id'] = auth()->id();
+        $user = auth()->user();
+        $data['user_id'] = $user->id;
+        
+        // Заполняем organization_id и department_id из пользователя
+        $data['organization_id'] = $data['organization_id'] ?? $user->organization_id;
+        $data['department_id'] = $data['department_id'] ?? $user->department_id;
 
         return Plan::create($data);
     }

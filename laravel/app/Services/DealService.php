@@ -3,12 +3,35 @@
 namespace App\Services;
 
 use App\Models\Deal;
+use App\Models\Client;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class DealService
 {
     public function createDeal(array $data)
     {
+        // Если organization_id и department_id не указаны, берем из client_id или user_id
+        if (!isset($data['organization_id']) || !isset($data['department_id'])) {
+            if (isset($data['client_id'])) {
+                $client = Client::find($data['client_id']);
+                if ($client) {
+                    $data['organization_id'] = $data['organization_id'] ?? $client->organization_id;
+                    $data['department_id'] = $data['department_id'] ?? $client->department_id;
+                }
+            } elseif (isset($data['user_id'])) {
+                $user = User::find($data['user_id']);
+                if ($user) {
+                    $data['organization_id'] = $data['organization_id'] ?? $user->organization_id;
+                    $data['department_id'] = $data['department_id'] ?? $user->department_id;
+                }
+            } elseif (Auth::check()) {
+                $user = Auth::user();
+                $data['organization_id'] = $data['organization_id'] ?? $user->organization_id;
+                $data['department_id'] = $data['department_id'] ?? $user->department_id;
+            }
+        }
+        
         $deal = Deal::create($data);
         return $deal;
     }

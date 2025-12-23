@@ -17,6 +17,8 @@ class WorkSessionService
     {
         return WorkSession::create([
             'user_id' => $user->id,
+            'organization_id' => $user->organization_id,
+            'department_id' => $user->department_id,
             'start_time' => now(),
         ]);
     }

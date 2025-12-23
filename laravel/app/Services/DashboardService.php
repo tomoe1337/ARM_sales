@@ -19,7 +19,9 @@ class DashboardService
     public function getDashboardData(User $user): array
     {
         $employees = $user->isHead()
-            ? User::where('id', '!=', $user->id)->get()
+            ? User::where('department_id', $user->department_id)
+                ->where('id', '!=', $user->id)
+                ->get()
             : collect();
 
         $dashboardData = [

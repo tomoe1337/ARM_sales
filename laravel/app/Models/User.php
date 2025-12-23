@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\UserRolesEnum;
 use Filament\Models\Contracts\FilamentUser;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +38,9 @@ class User extends Authenticatable implements FilamentUser
         'is_active',
         'activated_at',
         'avatar',
+        'is_paid',
+        'paid_activated_at',
+        'free_until',
     ];
 
     /**
@@ -59,6 +63,9 @@ class User extends Authenticatable implements FilamentUser
         'password' => 'hashed',
         'is_active' => 'boolean',
         'activated_at' => 'datetime',
+        'is_paid' => 'boolean',
+        'paid_activated_at' => 'datetime',
+        'free_until' => 'datetime',
     ];
 
     // Связи с мультитенантностью
@@ -131,4 +138,64 @@ class User extends Authenticatable implements FilamentUser
         ]);
     }
 
+    /**
+     * Локальный scope: пользователи отдела текущего пользователя
+     */
+    public function scopeForDepartment(Builder $query, ?int $departmentId = null): Builder
+    {
+        $user = auth()->user();
+        $departmentId = $departmentId ?? $user->department_id;
+        
+        return $query->where('department_id', $departmentId);
+    }
+
+    /**
+     * Локальный scope: пользователи организации текущего пользователя
+     */
+    public function scopeForOrganization(Builder $query, ?int $organizationId = null): Builder
+    {
+        $user = auth()->user();
+        $organizationId = $organizationId ?? $user->organization_id;
+        
+        return $query->where('organization_id', $organizationId);
+    }
+
+    /**
+     * Локальный scope: только менеджеры
+     */
+    public function scopeManagers(Builder $query): Builder
+    {
+        return $query->where('role', UserRolesEnum::MANAGER->value);
+    }
+
+    /**
+     * Локальный scope: автоматическая фильтрация по контексту пользователя
+     * Применяет фильтрацию в зависимости от роли
+     */
+    public function scopeForCurrentUserContext(Builder $query): Builder
+    {
+        if (!auth()->check()) {
+            return $query;
+        }
+
+        $user = auth()->user();
+        
+        if (!$user->organization_id) {
+            return $query;
+        }
+
+        // Супер-админ организации видит всех пользователей своей организации
+        if ($user->isOrganizationAdmin()) {
+            return $query->where('organization_id', $user->organization_id);
+        }
+        
+        // Руководитель отдела видит всех пользователей своего отдела
+        if ($user->isHead()) {
+            return $query->where('organization_id', $user->organization_id)
+                        ->where('department_id', $user->department_id);
+        }
+        
+        // Менеджер видит только себя
+        return $query->where('id', $user->id);
+    }
 }

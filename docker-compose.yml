@@ -51,6 +51,9 @@ services:
       CACHE_DRIVER: file
       SESSION_DRIVER: file
       QUEUE_CONNECTION: sync
+      
+      # PsySH (Tinker) configuration
+      XDG_CONFIG_HOME: /var/www/html/.config
     depends_on:
       postgres:
         condition: service_healthy

@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Organization;
+use App\Models\Department;
 use App\Models\Client;
 use App\Models\Deal;
 use App\Models\Task;
@@ -20,6 +22,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Создаем тарифный план
+        $this->call([
+            SubscriptionPlanSeeder::class,
+        ]);
+        
         // Отключен ClientOrderSeeder
         // $this->call([
         //     ClientOrderSeeder::class,
@@ -27,7 +34,27 @@ class DatabaseSeeder extends Seeder
         
         $faker = Faker::create('ru_RU');
 
-        // Создаем менеджера, если его ещё нет
+        // Создаем тестовую организацию
+        $organization = Organization::firstOrCreate(
+            ['name' => 'Тестовая организация'],
+            [
+                'email' => 'test@example.com',
+                'phone' => '+7 (999) 123-45-67',
+                'is_active' => true,
+                'is_single_department' => true,
+            ]
+        );
+
+        // Создаем тестовый департамент
+        $department = Department::firstOrCreate(
+            ['name' => 'Отдел продаж', 'organization_id' => $organization->id],
+            [
+                'description' => 'Тестовый отдел продаж',
+                'is_active' => true,
+            ]
+        );
+
+        // Создаем руководителя отдела
         $manager = User::firstOrCreate(
             ['email' => 'manager@example.com'],
             [
@@ -35,10 +62,18 @@ class DatabaseSeeder extends Seeder
                 'full_name' => 'Иванов',
                 'login' => 'manager',
                 'password' => Hash::make('password'),
-                'role' => 'head'
+                'role' => 'head',
+                'organization_id' => $organization->id,
+                'department_id' => $department->id,
+                'is_active' => true,
             ]
         );
+
+        // Обновляем департамент, указывая руководителя
+        $department->update(['head_id' => $manager->id]);
+
 #todo: Оставить только для тест окружения
+        // Создаем админа (без организации и департамента)
         User::firstOrCreate(
             ['email' => 'admin@mail.com'],
             [
@@ -46,11 +81,12 @@ class DatabaseSeeder extends Seeder
                 'full_name' => 'Иванов',
                 'login' => 'admin',
                 'password' => Hash::make('admin'),
-                'role' => 'admin'
+                'role' => 'admin',
+                'is_active' => true,
             ]
         );
 
-        // Создаем пользователей
+        // Создаем пользователей (менеджеров) в организации и департаменте
         $users = collect([$manager]); // добавляем менеджера в коллекцию
 
         for ($i = 1; $i <= 5; $i++) {
@@ -61,14 +97,17 @@ class DatabaseSeeder extends Seeder
                     'full_name' => $i,
                     'login' => 'employee' . $i,
                     'password' => Hash::make('password'),
-                    'role' => 'manager'
+                    'role' => 'manager',
+                    'organization_id' => $organization->id,
+                    'department_id' => $department->id,
+                    'is_active' => true,
                 ]
             );
             $users->push($user);
         }
 
         // Для каждого пользователя создаем задачи
-        $users->each(function ($user) use ($faker) {
+        $users->each(function ($user) use ($faker, $organization, $department) {
             for ($k = 1; $k <= 5; $k++) {
                 Task::create([
                     'title' => 'Задача ' . $k,
@@ -76,7 +115,9 @@ class DatabaseSeeder extends Seeder
                     'deadline' => $faker->dateTimeBetween('now', '+1 month'),
                     'status' => $faker->randomElement(['pending', 'in_progress', 'completed', 'cancelled']),
                     'user_id' => $user->id,
-                    'assignee_id' => $user->id
+                    'assignee_id' => $user->id,
+                    'organization_id' => $user->organization_id,
+                    'department_id' => $user->department_id,
                 ]);
             }
         });

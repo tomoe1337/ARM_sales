@@ -29,6 +29,9 @@ class OrderSynchronizer
                     if ($client) {
                         $transformedData['client_id'] = $client->id;
                         $transformedData['user_id'] = $client->user_id; // Назначаем менеджера клиента
+                        // Берем organization_id и department_id из клиента
+                        $transformedData['organization_id'] = $client->organization_id;
+                        $transformedData['department_id'] = $client->department_id;
                     } else {
                         Log::warning('Client not found for order', [
                             'order_bluesales_id' => $transformedData['bluesales_id'],

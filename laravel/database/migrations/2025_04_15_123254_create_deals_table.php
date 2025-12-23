@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['new', 'in_progress', 'won', 'lost'])->default('new');
+            $table->string('status')->default('new');
             $table->date('expected_close_date')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('client_id')->constrained()->onDelete('cascade');

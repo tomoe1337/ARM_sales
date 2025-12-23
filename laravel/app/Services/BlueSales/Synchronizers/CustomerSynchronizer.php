@@ -3,6 +3,7 @@
 namespace App\Services\BlueSales\Synchronizers;
 
 use App\Models\Client;
+use App\Models\User;
 use App\Services\BlueSales\Transformers\CustomerTransformer;
 use Illuminate\Support\Facades\Log;
 
@@ -83,6 +84,13 @@ class CustomerSynchronizer
                     // Назначаем первому доступному пользователю, если не указан
                     if (!isset($transformedData['user_id'])) {
                         $transformedData['user_id'] = 1; // Default user
+                    }
+                    
+                    // Получаем organization_id и department_id из пользователя
+                    $user = User::find($transformedData['user_id']);
+                    if ($user) {
+                        $transformedData['organization_id'] = $user->organization_id;
+                        $transformedData['department_id'] = $user->department_id;
                     }
                     
                     Client::create($transformedData);

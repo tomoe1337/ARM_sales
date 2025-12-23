@@ -24,6 +24,7 @@ class AnalyticsAiService
                 'orders.*',
                 'users.full_name as employee_name'
             )
+            ->withoutGlobalScope(\App\Models\Scopes\OrganizationScope::class)
             ->get();
 
         if ($array_output) {
@@ -195,8 +196,11 @@ class AnalyticsAiService
         $totalLeads = count($this->getClientsData());
         $totalOrders = count($orders);
 
+        $user = auth()->user();
         $AnalysisAiReport = AnalysisAiReport::create([
-            'user_id' => auth()->user()->id,
+            'user_id' => $user->id,
+            'organization_id' => $user->organization_id,
+            'department_id' => $user->department_id,
             'report_type' => 'weekly',
             'start_date' => now()->startOfWeek(),
             'end_date' => now()->endOfWeek(),

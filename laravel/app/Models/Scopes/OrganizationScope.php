@@ -19,24 +19,25 @@ class OrganizationScope implements Scope
         }
 
         $user = auth()->user();
+        $table = $model->getTable();
         
         // Супер-админ организации видит все отделы своей организации
         if ($user->isOrganizationAdmin()) {
-            $builder->where('organization_id', $user->organization_id);
+            $builder->where($table . '.organization_id', $user->organization_id);
         }
         // Руководитель отдела видит только свой отдел
         elseif ($user->isHead()) {
-            $builder->where('organization_id', $user->organization_id)
-                    ->where('department_id', $user->department_id);
+            $builder->where($table . '.organization_id', $user->organization_id)
+                    ->where($table . '.department_id', $user->department_id);
         }
         // Менеджер видит только свои данные (если есть user_id в таблице)
         else {
-            $builder->where('organization_id', $user->organization_id)
-                    ->where('department_id', $user->department_id);
+            $builder->where($table . '.organization_id', $user->organization_id)
+                    ->where($table . '.department_id', $user->department_id);
             
             // Если в таблице есть user_id, фильтруем по нему
-            if ($builder->getModel()->getConnection()->getSchemaBuilder()->hasColumn($builder->getModel()->getTable(), 'user_id')) {
-                $builder->where('user_id', $user->id);
+            if ($builder->getModel()->getConnection()->getSchemaBuilder()->hasColumn($table, 'user_id')) {
+                $builder->where($table . '.user_id', $user->id);
             }
         }
     }

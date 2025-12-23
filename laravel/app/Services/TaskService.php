@@ -65,6 +65,10 @@ class TaskService
             $validated['assignee_id'] = $user->id;
         }
 
+        // Заполняем organization_id и department_id из пользователя
+        $validated['organization_id'] = $validated['organization_id'] ?? $user->organization_id;
+        $validated['department_id'] = $validated['department_id'] ?? $user->department_id;
+
         return Task::create($validated);
     }
 
