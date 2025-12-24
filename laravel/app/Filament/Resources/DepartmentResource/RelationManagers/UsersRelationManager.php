@@ -8,6 +8,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Hash;
 
 class UsersRelationManager extends RelationManager
@@ -75,7 +76,7 @@ class UsersRelationManager extends RelationManager
                         
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активен')
-                            ->default(true),
+                            ->default(false),
                     ])
                     ->columns(2),
             ]);
@@ -154,15 +155,119 @@ class UsersRelationManager extends RelationManager
                             $data['role'] = UserRolesEnum::MANAGER->value;
                         }
                         
-                        // Активируем пользователя
-                        $data['is_active'] = true;
-                        $data['activated_at'] = now();
+                        // Проверяем лимит активных пользователей, если активируем
+                        if (($data['is_active'] ?? false)) {
+                            $subscription = $department->getActiveSubscription();
+                            
+                            // Если подписки нет или лимит = 0, нельзя создавать активных пользователей
+                            if (!$subscription) {
+                                $message = "Невозможно активировать пользователя. У отдела нет активной подписки или не оплачено ни одного пользователя.";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                            
+                            // Если лимит = 0, нельзя создавать активных пользователей
+                            if ($subscription->paid_users_limit <= 0) {
+                                $message = "Невозможно активировать пользователя. Не оплачено ни одного пользователя в отделе. Оформите подписку для активации пользователей.";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                            
+                            $activeUsersCount = $subscription->getActivePaidUsersCount();
+                            // Учитываем нового пользователя в подсчете
+                            $activeUsersCount++;
+                            
+                            if ($activeUsersCount > $subscription->paid_users_limit) {
+                                $message = "Невозможно активировать пользователя. Достигнут лимит оплаченных пользователей ({$subscription->paid_users_limit}).";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                        }
+                        
+                        // Устанавливаем дату активации, если активируем
+                        if ($data['is_active'] ?? false) {
+                            $data['activated_at'] = now();
+                        }
                         
                         return $data;
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(function (array $data, $record): array {
+                        // Проверяем лимит активных пользователей, если активируем (меняем с false на true)
+                        if (($data['is_active'] ?? false) && !$record->is_active) {
+                            $department = $this->getOwnerRecord();
+                            $subscription = $department->getActiveSubscription();
+                            
+                            // Если подписки нет или лимит = 0, нельзя активировать пользователей
+                            if (!$subscription) {
+                                $message = "Невозможно активировать пользователя. У отдела нет активной подписки или не оплачено ни одного пользователя.";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                            
+                            // Если лимит = 0, нельзя активировать пользователей
+                            if ($subscription->paid_users_limit <= 0) {
+                                $message = "Невозможно активировать пользователя. Не оплачено ни одного пользователя в отделе. Оформите подписку для активации пользователей.";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                            
+                            $activeUsersCount = $subscription->getActivePaidUsersCount();
+                            if ($activeUsersCount >= $subscription->paid_users_limit) {
+                                $message = "Невозможно активировать пользователя. Достигнут лимит оплаченных пользователей ({$subscription->paid_users_limit}).";
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Ошибка активации')
+                                    ->body($message)
+                                    ->send();
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    'is_active' => $message
+                                ]);
+                            }
+                        }
+                        
+                        // Устанавливаем дату активации, если активируем
+                        if (($data['is_active'] ?? false) && !$record->is_active) {
+                            $data['activated_at'] = now();
+                        } elseif (!($data['is_active'] ?? false) && $record->is_active) {
+                            // Сбрасываем дату активации при деактивации
+                            $data['activated_at'] = null;
+                        }
+                        
+                        return $data;
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn ($record) => $record->id !== auth()->id()),
             ])

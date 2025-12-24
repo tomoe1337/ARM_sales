@@ -86,7 +86,7 @@ class UserResource extends Resource
                         
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активен')
-                            ->default(true),
+                            ->default(false),
                     ])
                     ->columns(2),
             ]);

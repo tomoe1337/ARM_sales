@@ -81,26 +81,45 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
 
         $this->subscription = $department->getActiveSubscription();
         
+        // Если активной подписки нет, создаем или используем существующую
         if (!$this->subscription) {
-            $this->subscription = Subscription::create([
-                'department_id' => $this->selectedDepartmentId,
-                'organization_id' => Auth::user()->organization_id,
-                'subscription_plan_id' => \App\Models\SubscriptionPlan::getStandard()->id,
-                'starts_at' => now(),
-                'ends_at' => now()->addDays(14),
-                'trial_ends_at' => now()->addDays(14),
-                'paid_users_limit' => 0,
-                'monthly_price' => 0,
-                'auto_renew' => false,
-            ]);
+            // Проверяем, есть ли вообще какая-то подписка у отдела
+            $anySubscription = $department->subscriptions()->orderBy('created_at', 'desc')->first();
+            
+            if (!$anySubscription) {
+                // Если подписки вообще нет, создаем новую истекшую подписку
+                $this->subscription = Subscription::create([
+                    'department_id' => $this->selectedDepartmentId,
+                    'organization_id' => Auth::user()->organization_id,
+                    'subscription_plan_id' => \App\Models\SubscriptionPlan::getStandard()->id,
+                    'starts_at' => now()->subDay(),
+                    'ends_at' => now()->subDay(), // Истекшая, чтобы считалась как "нет подписки"
+                    'trial_ends_at' => null,
+                    'paid_users_limit' => 0,
+                    'monthly_price' => 0,
+                    'auto_renew' => false,
+                ]);
+            } else {
+                // Если есть подписка, но она не активна, используем последнюю
+                $this->subscription = $anySubscription;
+            }
         }
 
-        $this->form->fill([
-            'subscription_plan_id' => $this->subscription->subscription_plan_id,
-            'paid_users_limit' => max(1, $this->subscription->paid_users_limit),
-            'upgrade_users_count' => max(1, $this->subscription->paid_users_limit),
-            'months' => 1,
-        ]);
+        if ($this->subscription) {
+            $this->form->fill([
+                'subscription_plan_id' => $this->subscription->subscription_plan_id,
+                'paid_users_limit' => max(1, $this->subscription->paid_users_limit),
+                'upgrade_users_count' => max(1, $this->subscription->paid_users_limit),
+                'months' => 1,
+            ]);
+        } else {
+            $this->form->fill([
+                'subscription_plan_id' => \App\Models\SubscriptionPlan::getStandard()->id,
+                'paid_users_limit' => 1,
+                'upgrade_users_count' => 1,
+                'months' => 1,
+            ]);
+        }
     }
 
     public function updatedSelectedDepartmentId(): void
@@ -110,14 +129,18 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
 
     public function form(Form $form): Form
     {
-        $subscription = $this->subscription;
-
         return $form
             ->schema([
                 Forms\Components\Tabs::make('subscription_tabs')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('renewal')
-                            ->label('Продление подписки')
+                            ->label(function () {
+                                $subscription = $this->subscription;
+                                if (!$subscription || $subscription->isExpired()) {
+                                    return 'Оплатить подписку';
+                                }
+                                return 'Продление подписки';
+                            })
                             ->schema([
                                 Forms\Components\Select::make('subscription_plan_id')
                                             ->label('Тарифный план')
@@ -130,8 +153,11 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                             })
                                             ->required()
                                             ->live()
-                                            ->default($subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id)
-                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) use ($subscription) {
+                                            ->default(function () {
+                                                return $this->subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
+                                            })
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 if ($state) {
                                                     $plan = \App\Models\SubscriptionPlan::find($state);
                                                     if ($plan) {
@@ -168,10 +194,17 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                             ->label('Количество пользователей')
                             ->numeric()
                             ->required()
-                            ->minValue(fn () => $subscription ? max(1, $subscription->paid_users_limit) : 1)
-                            ->default(fn () => $subscription ? max(1, $subscription->paid_users_limit) : 1)
+                            ->minValue(function () {
+                                $subscription = $this->subscription;
+                                return $subscription ? max(1, $subscription->paid_users_limit) : 1;
+                            })
+                            ->default(function () {
+                                $subscription = $this->subscription;
+                                return $subscription ? max(1, $subscription->paid_users_limit) : 1;
+                            })
                             ->live()
-                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) use ($subscription) {
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $subscription = $this->subscription;
                                                 $planId = $get('subscription_plan_id');
                                                 if ($planId && $state > 0) {
                                                     $plan = \App\Models\SubscriptionPlan::find($planId);
@@ -202,7 +235,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     }
                                                 }
                                             })
-                            ->helperText(function () use ($subscription) {
+                            ->helperText(function () {
+                                $subscription = $this->subscription;
                                 if (!$subscription) {
                                     return 'Количество пользователей для продления подписки';
                                 }
@@ -222,7 +256,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                             ->required()
                                             ->default(1)
                                             ->live()
-                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) use ($subscription) {
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 $planId = $get('subscription_plan_id');
                                                 if ($planId) {
                                                     $plan = \App\Models\SubscriptionPlan::find($planId);
@@ -293,7 +328,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 return number_format($value, 2, ',', ' ');
                                             })
                                             ->dehydrated(false)
-                                            ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) use ($subscription) {
+                                            ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 // Пересчитываем цену после загрузки формы
                                                 $planId = $get('subscription_plan_id') ?? $subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
                                                 $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
@@ -307,7 +343,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 $totalPrice = $this->subscriptionService->calculateTotalPrice($subscription, $limit, $planId, $months);
                                                 $set('total_price', $totalPrice);
                                             })
-                                            ->default(function (Forms\Get $get) use ($subscription) {
+                                            ->default(function (Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 $planId = $get('subscription_plan_id') ?? $subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
                                                 $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
                                                 $months = $get('months') ?? 1;
@@ -334,7 +371,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 
                                                 return $proportionalPrice + ($newMonthlyPrice * ($months - 1)) + $newMonthlyPrice;
                                             })
-                                            ->helperText(function (Forms\Get $get) use ($subscription) {
+                                            ->helperText(function (Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 if (!$subscription) {
                                                     return 'Заполните все поля';
                                                 }
@@ -444,17 +482,25 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                             ->label('Новое общее количество пользователей')
                                             ->numeric()
                                             ->required()
-                                            ->minValue(fn () => $subscription ? max(1, $subscription->paid_users_limit) : 1)
-                                            ->default(fn () => $subscription ? max(1, $subscription->paid_users_limit) : 1)
-                                            ->live()
-                                            ->helperText(function () use ($subscription) {
-                                                if (!$subscription || !$subscription->isActive()) {
-                                                    return 'Доступно только для активной подписки';
-                                                }
-                                                $paidCount = $subscription->paid_users_limit;
-                                                return "Минимум: {$paidCount} (оплачено пользователей в отделе: {$paidCount}). Укажите новое количество (больше текущего для добавления пользователей)";
-                                            })
-                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) use ($subscription) {
+                            ->minValue(function () {
+                                $subscription = $this->subscription;
+                                return $subscription ? max(1, $subscription->paid_users_limit) : 1;
+                            })
+                            ->default(function () {
+                                $subscription = $this->subscription;
+                                return $subscription ? max(1, $subscription->paid_users_limit) : 1;
+                            })
+                            ->live()
+                            ->helperText(function () {
+                                $subscription = $this->subscription;
+                                if (!$subscription || !$subscription->isActive()) {
+                                    return 'Доступно только для активной подписки';
+                                }
+                                $paidCount = $subscription->paid_users_limit;
+                                return "Минимум: {$paidCount} (оплачено пользователей в отделе: {$paidCount}). Укажите новое количество (больше текущего для добавления пользователей)";
+                            })
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $subscription = $this->subscription;
                                                 if (!$subscription || !$subscription->isActive()) {
                                                     $set('upgrade_total_price', 0);
                                                     return;
@@ -482,7 +528,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
 
                                         Forms\Components\Placeholder::make('upgrade_info')
                                             ->label('Информация о доплате')
-                                            ->content(function (Forms\Get $get) use ($subscription) {
+                                            ->content(function (Forms\Get $get) {
+                                                $subscription = $this->subscription;
                                                 if (!$subscription || !$subscription->isActive()) {
                                                     return 'Доступно только для активной подписки';
                                                 }
@@ -544,7 +591,10 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                         ])
                                             ->columnSpanFull(),
                             ])
-                            ->visible(fn () => $subscription && $subscription->isActive() && !$subscription->isTrial()),
+                            ->visible(function () {
+                                $subscription = $this->subscription;
+                                return $subscription && $subscription->isActive() && !$subscription->isTrial();
+                            }),
                     ])
                     ->columnSpanFull(),
             ])
@@ -555,13 +605,16 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
     {
         $subscription = $this->subscription;
         
-        $user = Auth::user();
-        
         return $table
-            ->query(
-                User::query()
-                    ->where('department_id', $user->department_id)
-            )
+            ->query(function () {
+                if (!$this->selectedDepartmentId) {
+                    // Если отдел не выбран, возвращаем пустой запрос
+                    return User::query()->whereRaw('1 = 0');
+                }
+                
+                return User::query()
+                    ->where('department_id', $this->selectedDepartmentId);
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('Фамилия Имя')
@@ -573,23 +626,23 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_paid')
-                    ->label('Статус')
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Активен')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger')
-                    ->getStateUsing(fn (?User $record) => $record?->is_paid ?? false),
+                    ->getStateUsing(fn (?User $record) => $record?->is_active ?? false),
 
-                Tables\Columns\TextColumn::make('paid_activated_at')
+                Tables\Columns\TextColumn::make('activated_at')
                     ->label('Активирован')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_paid')
+                Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Только активные')
                     ->placeholder('Все пользователи')
                     ->trueLabel('Только активные')
@@ -601,14 +654,14 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (?User $record) => $record && !$record->is_paid && $this->canActivateUser())
+                    ->visible(fn (?User $record) => $record && !$record->is_active && $this->canActivateUser())
                     ->action(function (?User $record) {
                         if (!$record) {
                             return;
                         }
                         $record->update([
-                            'is_paid' => true,
-                            'paid_activated_at' => now(),
+                            'is_active' => true,
+                            'activated_at' => now(),
                         ]);
 
                         Notification::make()
@@ -623,14 +676,14 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (?User $record) => $record && $record->is_paid)
+                    ->visible(fn (?User $record) => $record && $record->is_active)
                     ->action(function (?User $record) {
                         if (!$record) {
                             return;
                         }
                         $record->update([
-                            'is_paid' => false,
-                            'paid_activated_at' => null,
+                            'is_active' => false,
+                            'activated_at' => null,
                         ]);
 
                         Notification::make()
@@ -656,13 +709,32 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
 
         $currentSubscription = $this->subscription;
         
+        // Если подписки нет, создаем её перед оплатой
         if (!$currentSubscription) {
-            Notification::make()
-                ->danger()
-                ->title('Ошибка')
-                ->body('Подписка не найдена.')
-                ->send();
-            return;
+            $department = \App\Models\Department::find($this->selectedDepartmentId);
+            if (!$department) {
+                Notification::make()
+                    ->danger()
+                    ->title('Ошибка')
+                    ->body('Отдел не найден.')
+                    ->send();
+                return;
+            }
+            
+            // Создаем новую истекшую подписку
+            $currentSubscription = Subscription::create([
+                'department_id' => $this->selectedDepartmentId,
+                'organization_id' => Auth::user()->organization_id,
+                'subscription_plan_id' => $newPlanId,
+                'starts_at' => now()->subDay(),
+                'ends_at' => now()->subDay(), // Истекшая, чтобы считалась как "нет подписки"
+                'trial_ends_at' => null,
+                'paid_users_limit' => 0,
+                'monthly_price' => 0,
+                'auto_renew' => false,
+            ]);
+            
+            $this->subscription = $currentSubscription;
         }
         
         $activeUsersCount = $currentSubscription->getActivePaidUsersCount();
@@ -869,7 +941,7 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
     {
         if (!$this->subscription) {
             return [
-                'status_label' => 'Неизвестно',
+                'status_label' => 'Тариф не выбран',
                 'ends_at' => null,
                 'trial_ends_at' => null,
                 'paid_users_limit' => 0,

@@ -74,7 +74,7 @@ class Subscription extends Model
     public function getActivePaidUsersCount(): int
     {
         return $this->department->users()
-            ->where('is_paid', true)
+            ->where('is_active', true)
             ->count();
     }
 }

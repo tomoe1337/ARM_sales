@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements FilamentUser
@@ -38,9 +39,6 @@ class User extends Authenticatable implements FilamentUser
         'is_active',
         'activated_at',
         'avatar',
-        'is_paid',
-        'paid_activated_at',
-        'free_until',
     ];
 
     /**
@@ -63,9 +61,6 @@ class User extends Authenticatable implements FilamentUser
         'password' => 'hashed',
         'is_active' => 'boolean',
         'activated_at' => 'datetime',
-        'is_paid' => 'boolean',
-        'paid_activated_at' => 'datetime',
-        'free_until' => 'datetime',
     ];
 
     // Связи с мультитенантностью
@@ -126,6 +121,27 @@ class User extends Authenticatable implements FilamentUser
             ->whereNull('end_time')
             ->latest()
             ->first();
+    }
+
+    /**
+     * Получить URL аватарки пользователя
+     */
+    public function getAvatarUrl(): string
+    {
+        if (!$this->avatar) {
+            return asset('storage/avatars/default_avatar.png');
+        }
+
+        // Если это полный URL, возвращаем как есть
+        if (str_starts_with($this->avatar, 'http')) {
+            return $this->avatar;
+        }
+
+        // Используем Storage для получения URL
+        // Storage::url() для диска 'public' вернет путь вида /storage/path/to/file
+        // Не проверяем существование файла здесь, чтобы избежать лишних проверок
+        // Если файл не существует, браузер покажет дефолтный через onerror
+        return Storage::disk('public')->url($this->avatar);
     }
 
     public function canAccessPanel(Panel $panel): bool

@@ -69,16 +69,31 @@
                 <div class="dropdown">
                     <button class="btn avatar-dropdown" type="button" id="userDropdown" data-bs-toggle="dropdown"
                             aria-expanded="false">
+                        @php
+                            $avatarUrl = $user->getAvatarUrl();
+                            $defaultAvatar = asset('storage/avatars/default_avatar.png');
+                        @endphp
                         <img
-                            src="{{ $user->avatar ? Storage::url($user->avatar) : asset('storage/avatars/default_avatar.png') }}"
+                            src="{{ $avatarUrl }}"
                             alt="Аватар"
                             class="rounded-circle"
-                            style="width: 40px; height: 40px; object-fit: cover;">
+                            style="width: 40px; height: 40px; object-fit: cover;"
+                            loading="lazy"
+                            onerror="if(this.src !== '{{ $defaultAvatar }}') { this.src = '{{ $defaultAvatar }}'; }">
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li class="m-2">
                             <span>{{$user->email}}</span>
                         </li>
+                        @if($user->isHead() || $user->isOrganizationAdmin())
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url('/admin') }}">
+                                    <i class="fas fa-cog me-2"></i> Настройки организации
+                                </a>
+                            </li>
+                        @endif
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

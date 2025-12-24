@@ -18,6 +18,7 @@ class Organization extends Model
         'address',
         'subscription_plan_id',
         'subscription_expires_at',
+        'trial_used_at',
         'is_active',
         'is_single_department',
         'settings',
@@ -25,6 +26,7 @@ class Organization extends Model
 
     protected $casts = [
         'subscription_expires_at' => 'datetime',
+        'trial_used_at' => 'datetime',
         'is_active' => 'boolean',
         'is_single_department' => 'boolean',
         'settings' => 'array',
@@ -55,5 +57,13 @@ class Organization extends Model
         
         $this->update(['is_single_department' => false]);
         return false;
+    }
+
+    /**
+     * Проверка, использовала ли организация пробный период
+     */
+    public function hasUsedTrial(): bool
+    {
+        return $this->trial_used_at !== null;
     }
 }

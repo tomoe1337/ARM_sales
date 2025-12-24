@@ -54,57 +54,60 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Создаем руководителя отдела
-        $manager = User::firstOrCreate(
-            ['email' => 'manager@example.com'],
-            [
-                'name' => 'Иван',
-                'full_name' => 'Иванов',
-                'login' => 'manager',
-                'password' => Hash::make('password'),
-                'role' => 'head',
-                'organization_id' => $organization->id,
-                'department_id' => $department->id,
-                'is_active' => true,
-            ]
-        );
-
-        // Обновляем департамент, указывая руководителя
-        $department->update(['head_id' => $manager->id]);
-
-#todo: Оставить только для тест окружения
-        // Создаем админа (без организации и департамента)
-        User::firstOrCreate(
-            ['email' => 'admin@mail.com'],
-            [
-                'name' => 'Иван',
-                'full_name' => 'Иванов',
-                'login' => 'admin',
-                'password' => Hash::make('admin'),
-                'role' => 'admin',
-                'is_active' => true,
-            ]
-        );
-
-        // Создаем пользователей (менеджеров) в организации и департаменте
-        $users = collect([$manager]); // добавляем менеджера в коллекцию
-
-        for ($i = 1; $i <= 5; $i++) {
-            $user = User::firstOrCreate(
-                ['email' => 'employee' . $i . '@example.com'],
+        // Создаем пользователей без проверки лимита (обходим Observer)
+        User::withoutEvents(function () use ($organization, $department, &$manager, &$users) {
+            // Создаем руководителя отдела
+            $manager = User::firstOrCreate(
+                ['email' => 'manager@example.com'],
                 [
-                    'name' => 'Сотрудник ',
-                    'full_name' => $i,
-                    'login' => 'employee' . $i,
+                    'name' => 'Иван',
+                    'full_name' => 'Иванов',
+                    'login' => 'manager',
                     'password' => Hash::make('password'),
-                    'role' => 'manager',
+                    'role' => 'head',
                     'organization_id' => $organization->id,
                     'department_id' => $department->id,
                     'is_active' => true,
                 ]
             );
-            $users->push($user);
-        }
+
+#todo: Оставить только для тест окружения
+            // Создаем админа (без организации и департамента)
+            User::firstOrCreate(
+                ['email' => 'admin@mail.com'],
+                [
+                    'name' => 'Иван',
+                    'full_name' => 'Иванов',
+                    'login' => 'admin',
+                    'password' => Hash::make('admin'),
+                    'role' => 'admin',
+                    'is_active' => true,
+                ]
+            );
+
+            // Создаем пользователей (менеджеров) в организации и департаменте
+            $users = collect([$manager]); // добавляем менеджера в коллекцию
+
+            for ($i = 1; $i <= 5; $i++) {
+                $user = User::firstOrCreate(
+                    ['email' => 'employee' . $i . '@example.com'],
+                    [
+                        'name' => 'Сотрудник ',
+                        'full_name' => $i,
+                        'login' => 'employee' . $i,
+                        'password' => Hash::make('password'),
+                        'role' => 'manager',
+                        'organization_id' => $organization->id,
+                        'department_id' => $department->id,
+                        'is_active' => true,
+                    ]
+                );
+                $users->push($user);
+            }
+        });
+
+        // Обновляем департамент, указывая руководителя
+        $department->update(['head_id' => $manager->id]);
 
         // Для каждого пользователя создаем задачи
         $users->each(function ($user) use ($faker, $organization, $department) {

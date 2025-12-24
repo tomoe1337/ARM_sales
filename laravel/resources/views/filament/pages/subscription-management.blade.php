@@ -114,7 +114,7 @@
                 <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="text-sm text-gray-600 dark:text-gray-400">Тарифный план</div>
                     <div class="text-lg font-semibold mt-1">
-                        {{ $this->subscription->plan->name ?? 'Не выбран' }}
+                        {{ $this->subscription?->plan->name ?? 'Не выбран' }}
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {{ number_format($status['price_per_user'], 0, ',', ' ') }}₽/пользователь
@@ -125,8 +125,8 @@
                     <div class="text-sm text-gray-600 dark:text-gray-400">Статус</div>
                     <div class="text-lg font-semibold mt-1">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($this->subscription->isTrial()) bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
-                            @elseif($this->subscription->isActive()) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                            @if($this->subscription && $this->subscription->isTrial()) bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                            @elseif($this->subscription && $this->subscription->isActive()) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
                             @else bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
                             @endif">
                             {{ $status['status_label'] }}
@@ -157,7 +157,7 @@
             @if($status['ends_at'])
                 <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div class="text-sm text-gray-700 dark:text-gray-300">
-                        @if($this->subscription->isTrial())
+                        @if($this->subscription && $this->subscription->isTrial())
                             Пробный период до: <strong>{{ $status['trial_ends_at']->format('d.m.Y') }}</strong>
                         @else
                             Подписка действует до: <strong>{{ $status['ends_at']->format('d.m.Y') }}</strong>

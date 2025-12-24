@@ -81,18 +81,20 @@ class Department extends Model
     protected static function booted()
     {
         static::created(function ($department) {
-            if (!$department->getActiveSubscription()) {
+            if (!$department->getActiveSubscription() && !$department->organization->hasUsedTrial()) {
+                $plan = \App\Models\SubscriptionPlan::getStandard();
                 \App\Models\Subscription::create([
                     'department_id' => $department->id,
                     'organization_id' => $department->organization_id,
-                    'subscription_plan_id' => \App\Models\SubscriptionPlan::getStandard()->id,
+                    'subscription_plan_id' => $plan->id,
                     'starts_at' => now(),
                     'ends_at' => now()->addDays(14),
                     'trial_ends_at' => now()->addDays(14),
-                    'paid_users_limit' => 0,
-                    'monthly_price' => 0,
+                    'paid_users_limit' => 1, // Пробный период дает 1 оплаченный слот для создателя отдела
+                    'monthly_price' => $plan->price_per_user, // Цена за 1 пользователя
                     'auto_renew' => false,
                 ]);
+                $department->organization->update(['trial_used_at' => now()]);
             }
         });
 

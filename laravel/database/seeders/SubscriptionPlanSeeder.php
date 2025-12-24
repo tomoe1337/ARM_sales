@@ -25,3 +25,4 @@ class SubscriptionPlanSeeder extends Seeder
 
 
 
+
