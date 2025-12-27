@@ -20,7 +20,7 @@ class PaymentController extends Controller
     public function callback(Request $request, string $gateway): JsonResponse
     {
         try {
-            $logChannel = ($gateway === 'robokassa') ? 'robokassa' : 'single';
+            $logChannel = in_array($gateway, ['robokassa', 'yookassa']) ? $gateway : 'single';
             
             Log::channel($logChannel)->info('Входящий webhook', [
                 'gateway' => $gateway,
