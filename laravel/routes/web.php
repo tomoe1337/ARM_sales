@@ -54,6 +54,19 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
+Route::get('/landing', function () {
+    $standardPlan = \App\Models\SubscriptionPlan::where('is_active', true)
+        ->orderBy('price_per_user', 'asc')
+        ->first();
+    
+    // Если нет активных тарифов, используем стандартный
+    if (!$standardPlan) {
+        $standardPlan = \App\Models\SubscriptionPlan::getStandard();
+    }
+    
+    return view('landing', compact('standardPlan'));
+})->name('landing');
+
 Route::get('/test', function () {
     return view('auth.unActivatedUser');
 })->name('unActivatedUser');
