@@ -4,13 +4,40 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\PaymentGateway\PaymentGatewayFactory;
+use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class PaymentController extends Controller
 {
+    /**
+     * Проверка статуса платежа после возврата пользователя из ЮKassa
+     * 
+     * @param Payment $payment
+     * @return RedirectResponse
+     */
+    public function checkStatus(Payment $payment): RedirectResponse
+    {
+        // Даем вебхуку время дойти (ждем до 2 секунд, проверяя базу)
+        for ($i = 0; $i < 4; $i++) {
+            $payment->refresh();
+            if ($payment->status === 'succeeded') {
+                return redirect()->route('payment.success');
+            }
+            usleep(500000); // пауза 0.5 сек
+        }
+
+        // Если через 2 секунды всё еще не оплачен
+        if ($payment->status === 'succeeded') {
+            return redirect()->route('payment.success');
+        }
+
+        return redirect()->route('payment.failed');
+    }
+
     /**
      * Webhook от платежной системы
      * 

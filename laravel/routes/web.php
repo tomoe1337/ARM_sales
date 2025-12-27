@@ -67,6 +67,9 @@ Route::get('/payment/failed', function () {
     return view('payment.failed');
 })->name('payment.failed');
 
+Route::get('/payment/check/{payment}', [\App\Http\Controllers\Api\PaymentController::class, 'checkStatus'])
+    ->name('payment.check');
+
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 

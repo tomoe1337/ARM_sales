@@ -77,7 +77,7 @@ class YookassaGateway extends AbstractGateway
                     ],
                     'confirmation' => [
                         'type' => 'redirect',
-                        'return_url' => Config::get('services.yookassa.success_url'),
+                        'return_url' => route('payment.check', ['payment' => $payment->id]),
                     ],
                     'capture' => true,
                     'description' => $data['description'],
