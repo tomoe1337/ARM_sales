@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use YooKassa\Client;
 use Exception;
+use YooKassa\Model\Notification\NotificationEventType;
+use YooKassa\Model\Notification\NotificationSucceeded;
+use YooKassa\Model\Notification\NotificationWaitingForCapture;
 
 class YookassaGateway extends AbstractGateway
 {
@@ -114,7 +117,7 @@ class YookassaGateway extends AbstractGateway
         Log::info('Получен вебхук от ЮKassa', $data);
 
         try {
-            // Если $data пуста (такое бывает если JSON не распарсился Laravel), 
+            // Если $data пуста (такое бывает если JSON не распарсился Laravel),
             // пробуем прочитать тело напрямую
             if (empty($data)) {
                 $source = file_get_contents('php://input');
@@ -125,14 +128,14 @@ class YookassaGateway extends AbstractGateway
                 throw new Exception('Empty or invalid data in YooKassa webhook');
             }
 
-            $notification = ($data['event'] === \YooKassa\Model\Notification\NotificationEventType::PAYMENT_SUCCEEDED)
-                ? new \YooKassa\Model\Notification\NotificationSucceeded($data)
-                : new \YooKassa\Model\Notification\NotificationWaitingForCapture($data);
+            $notification = ($data['event'] === NotificationEventType::PAYMENT_SUCCEEDED)
+                ? new NotificationSucceeded($data)
+                : new NotificationWaitingForCapture($data);
 
             $paymentObject = $notification->getObject();
             $externalId = $paymentObject->getId();
 
-            if ($data['event'] !== \YooKassa\Model\Notification\NotificationEventType::PAYMENT_SUCCEEDED) {
+            if ($data['event'] !== NotificationEventType::PAYMENT_SUCCEEDED) {
                 Log::info('ЮKassa: игнорируем событие', ['event' => $data['event']]);
                 return Payment::where('payment_id', $externalId)->firstOrFail();
             }
@@ -155,8 +158,8 @@ class YookassaGateway extends AbstractGateway
                 $months = $payment->months ?? 1;
 
                 $startsAt = $subscription->isTrial() || $subscription->isExpired() ? now() : $subscription->starts_at;
-                $endsAt = $subscription->isActive() 
-                    ? $subscription->ends_at->copy()->addMonths($months) 
+                $endsAt = $subscription->isActive()
+                    ? $subscription->ends_at->copy()->addMonths($months)
                     : $startsAt->copy()->addMonths($months);
 
                 $subscription->update([
