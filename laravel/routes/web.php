@@ -58,6 +58,15 @@ Route::get('/test', function () {
     return view('auth.unActivatedUser');
 })->name('unActivatedUser');
 
+// Страницы результатов оплаты (без авторизации)
+Route::get('/payment/success', function () {
+    return view('payment.success');
+})->name('payment.success');
+
+Route::get('/payment/failed', function () {
+    return view('payment.failed');
+})->name('payment.failed');
+
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 

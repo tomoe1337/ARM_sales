@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use App\Models\Deal;
 use App\Models\User;
 use App\Observers\DealObserver;
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Форсировать HTTPS для ngrok и production
+        if (config('app.env') === 'production' || str_contains(config('app.url'), 'ngrok')) {
+            URL::forceScheme('https');
+        }
+
         \Log::info('AppServiceProvider boot method called');
         Deal::observe(DealObserver::class);
         User::observe(UserObserver::class);

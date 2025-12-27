@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Department;
+use App\Services\PaymentGateway\PaymentGatewayFactory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class SubscriptionService
 {
@@ -134,55 +136,42 @@ class SubscriptionService
         $isSameConditions = $newLimit == $subscription->paid_users_limit 
             && $newPlanId == $subscription->subscription_plan_id;
 
-        if ($isSameConditions && !$isTrialOrExpired) {
-            // Продление: обновляем ends_at
-            $subscription->update([
-                'ends_at' => $subscription->ends_at->copy()->addMonths($months),
+        // Рассчитываем итоговую цену
+        $totalPrice = $this->calculateTotalPrice($subscription, $newLimit, $newPlanId, $months);
+
+        try {
+            // Создаем платеж через выбранный шлюз (по умолчанию robokassa)
+            $gatewayName = config('services.payment.gateway', 'robokassa');
+            $gateway = PaymentGatewayFactory::create($gatewayName);
+            
+            $payment = $gateway->createPayment([
+                'subscription_id' => $subscription->id,
+                'amount' => $totalPrice,
+                'description' => "Подписка на {$months} мес. для {$newLimit} польз.",
+                'months' => $months,
+                'user_limit' => $newLimit,
+                'plan_id' => $newPlanId,
             ]);
 
-            return ['success' => true, 'message' => 'Подписка продлена.'];
+            // НЕ обновляем подписку здесь! Это произойдет в webhook после оплаты
+            // Подписка будет активирована в RobokassaGateway::handleCallback()
+
+            // Получаем URL для редиректа
+            $paymentUrl = $payment->provider_data['payment_url'];
+
+            return [
+                'success' => true,
+                'message' => 'Перенаправление на оплату',
+                'payment_url' => $paymentUrl,
+                'payment_id' => $payment->id,
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Ошибка создания платежа: ' . $e->getMessage(),
+            ];
         }
-
-        // Апгрейд или новая подписка
-        if ($isTrialOrExpired || !$subscription->isActive()) {
-            // Просто полная оплата за указанные месяцы
-            if ($subscription->isTrial()) {
-                $subscription->update(['trial_ends_at' => null]);
-            }
-
-            $subscription->update([
-                'subscription_plan_id' => $newPlanId,
-                'paid_users_limit' => $newLimit,
-                'monthly_price' => $monthlyPrice,
-                'starts_at' => now(),
-                'ends_at' => now()->copy()->addMonths($months),
-            ]);
-
-            return ['success' => true, 'message' => 'Подписка активирована.'];
-        }
-
-        // Апгрейд активной подписки: пропорциональная оплата за оставшийся период + полная за будущие
-        $oldMonthlyPrice = $subscription->monthly_price;
-        $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
-
-        // Пропорциональная доплата за оставшиеся дни с учетом реальных дней в каждом месяце
-        $priceDifference = $monthlyPrice - $oldMonthlyPrice;
-        $proportionalPrice = $this->calculateProportionalPrice($priceDifference, $daysRemaining, now());
-
-        // Обновляем подписку
-        $subscription->update([
-            'subscription_plan_id' => $newPlanId,
-            'paid_users_limit' => $newLimit,
-            'monthly_price' => $monthlyPrice,
-            'ends_at' => $subscription->ends_at->copy()->addMonths($months),
-        ]);
-
-        // TODO: Создать платёж
-
-        return [
-            'success' => true,
-            'message' => 'Апгрейд подписки выполнен. Пропорциональная доплата: ' . number_format($proportionalPrice, 2, ',', ' ') . '₽ за ' . $daysRemaining . ' дней.'
-        ];
     }
 
     /**
@@ -224,18 +213,36 @@ class SubscriptionService
 
         $newMonthlyPrice = $newUsersCount * $pricePerUser;
 
-        $subscription->update([
-            'paid_users_limit' => $newUsersCount,
-            'monthly_price' => $newMonthlyPrice,
-        ]);
+        try {
+            // Создаем платеж через выбранный шлюз (по умолчанию robokassa)
+            $gatewayName = config('services.payment.gateway', 'robokassa');
+            $gateway = PaymentGatewayFactory::create($gatewayName);
+            
+            $payment = $gateway->createPayment([
+                'subscription_id' => $subscription->id,
+                'amount' => $proportionalPrice,
+                'description' => "Апгрейд: +{$addedUsers} польз. на {$daysRemaining} дн.",
+                'months' => 0, // Это апгрейд, не продление
+                'user_limit' => $newUsersCount,
+                'plan_id' => $subscription->subscription_plan_id,
+            ]);
 
-        // TODO: Создать платёж
+            $paymentUrl = $payment->provider_data['payment_url'];
 
-        return [
-            'success' => true,
-            'message' => "Добавлено пользователей: +{$addedUsers}. Доплата: " . number_format($proportionalPrice, 2, ',', ' ') . "₽ за {$daysRemaining} дней.",
-            'price' => $proportionalPrice
-        ];
+            return [
+                'success' => true,
+                'message' => "Добавлено пользователей: +{$addedUsers}. Перенаправление на оплату.",
+                'price' => $proportionalPrice,
+                'payment_url' => $paymentUrl,
+                'payment_id' => $payment->id,
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Ошибка создания платежа: ' . $e->getMessage(),
+            ];
+        }
     }
 
     /**

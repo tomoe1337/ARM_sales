@@ -35,4 +35,24 @@ return [
         ],
     ],
 
-];
+    'payment' => [
+        'mode' => env('PAYMENT_MODE', 'test'), // test или live
+        'gateway' => env('PAYMENT_GATEWAY', 'robokassa'),
+    ],
+
+        'robokassa' => [
+            'merchant_login' => env('ROBOKASSA_MERCHANT_LOGIN'),
+            'password_1' => env('ROBOKASSA_PASSWORD_1'),
+            'password_2' => env('ROBOKASSA_PASSWORD_2'),
+            'success_url' => env('ROBOKASSA_SUCCESS_URL', env('APP_URL') . '/payment/success'),
+            'fail_url' => env('ROBOKASSA_FAIL_URL', env('APP_URL') . '/payment/failed'),
+        ],
+
+        'yookassa' => [
+            'shop_id' => env('YOOKASSA_SHOP_ID'),
+            'secret_key' => env('YOOKASSA_SECRET_KEY'),
+            'success_url' => env('YOOKASSA_SUCCESS_URL', env('APP_URL') . '/payment/success'),
+            'fail_url' => env('YOOKASSA_FAIL_URL', env('APP_URL') . '/payment/failed'),
+        ],
+
+    ];

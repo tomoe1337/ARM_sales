@@ -766,66 +766,34 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
             return;
         }
 
-        // Определяем: продление на тех же условиях или апгрейд
-        $isSameConditions = $newLimit == $currentSubscription->paid_users_limit 
-            && $newPlanId == $currentSubscription->subscription_plan_id;
-        
-        if ($isSameConditions && !$isTrialOrExpired) {
-            // Продление: обновляем ends_at
-            $currentSubscription->update([
-                'ends_at' => $currentSubscription->ends_at->copy()->addMonths($months),
-            ]);
-        } else {
-            // Апгрейд или новая подписка: пропорциональная оплата только если подписка активна
-            if ($isTrialOrExpired || !$currentSubscription->isActive()) {
-                // Просто полная оплата за указанные месяцы
-                $totalPrice = round($monthlyPrice * $months, 2);
-                
-                // Если пробный период - завершаем его
-                if ($currentSubscription->isTrial()) {
-                    $currentSubscription->update(['trial_ends_at' => null]);
-                }
-                
-                // Обновляем подписку
-                $currentSubscription->update([
-                    'subscription_plan_id' => $newPlanId,
-                    'paid_users_limit' => $newLimit,
-                    'monthly_price' => $monthlyPrice,
-                    'starts_at' => now(),
-                    'ends_at' => now()->copy()->addMonths($months),
-                ]);
-            } else {
-                // Апгрейд активной подписки: пропорциональная оплата за оставшийся период + полная за будущие
-                $oldMonthlyPrice = $currentSubscription->monthly_price;
-                $daysRemaining = (int) max(0, now()->diffInDays($currentSubscription->ends_at, false));
-                
-                // Пропорциональная доплата за оставшиеся дни с учетом реальных дней в каждом месяце
-                $priceDifference = $monthlyPrice - $oldMonthlyPrice;
-                $proportionalPrice = $this->subscriptionService->calculateProportionalPrice($priceDifference, $daysRemaining, now());
-                
-                // Полная оплата за будущие месяцы
-                $futureMonthsPrice = round($monthlyPrice * ($months - 1), 2);
-                
-                // Итоговая сумма: пропорциональная доплата + полные месяцы
-                $totalPrice = round($proportionalPrice + $futureMonthsPrice + $monthlyPrice, 2);
-                
-                // Обновляем подписку
-                $currentSubscription->update([
-                    'subscription_plan_id' => $newPlanId,
-                    'paid_users_limit' => $newLimit,
-                    'monthly_price' => $monthlyPrice,
-                    'ends_at' => $currentSubscription->ends_at->copy()->addMonths($months),
-                ]);
-            }
+        // TODO: Создать платеж в payments и перейти на страницу оплаты
+        $result = $this->subscriptionService->pay(
+            $currentSubscription,
+            $newLimit,
+            $newPlanId,
+            $months
+        );
+
+        if (!$result['success']) {
+            Notification::make()
+                ->danger()
+                ->title('Ошибка оплаты')
+                ->body($result['message'])
+                ->send();
+            return;
         }
 
-        // TODO: Создать платеж в payments и перейти на страницу оплаты
-        // Пока имитируем оплату
-        
+        // Если есть payment_url - редирект на страницу оплаты выбранного шлюза
+        if (isset($result['payment_url'])) {
+            $this->redirect($result['payment_url']);
+            return;
+        }
+
+        // Fallback на старое поведение (если вдруг нет payment_url)
         Notification::make()
             ->success()
             ->title('Подписка оплачена')
-            ->body("Тариф: {$plan->name}. Пользователей: {$newLimit}. Период: {$months} месяцев. Сумма: " . number_format($totalPrice, 2, ',', ' ') . "₽")
+            ->body($result['message'])
             ->send();
         
         $this->loadSubscription();
@@ -915,6 +883,12 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                 ->title('Ошибка')
                 ->body($result['message'])
                 ->send();
+            return;
+        }
+
+        // Если есть payment_url - редирект на страницу оплаты выбранного шлюза
+        if (isset($result['payment_url'])) {
+            $this->redirect($result['payment_url']);
             return;
         }
         
