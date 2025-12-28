@@ -23,9 +23,10 @@ class IndexController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->is_active){
+        if (!$user->isEffectivelyActivated()) {
             return view('auth.unActivatedUser');
         }
+
         $dashboardData = $this->dashboardService->getDashboardData($user);
 
         return view('dashboard', compact('dashboardData'));

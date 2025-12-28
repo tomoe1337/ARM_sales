@@ -115,6 +115,24 @@ class User extends Authenticatable implements FilamentUser
             ->exists();
     }
 
+    /**
+     * Проверка полной активации пользователя (флаг + подписка)
+     */
+    public function isEffectivelyActivated(): bool
+    {
+        // 1. Проверка личного флага
+        if (!$this->is_active) {
+            return false;
+        }
+
+        // 2. Проверка подписки отдела (если есть отдел)
+        if ($this->department_id) {
+            return $this->department->getActiveSubscription() !== null;
+        }
+
+        return true;
+    }
+
     public function getCurrentSession(): ?WorkSession
     {
         return $this->workSessions()

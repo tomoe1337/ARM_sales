@@ -58,7 +58,7 @@ Route::get('/test', function () {
     return view('auth.unActivatedUser');
 })->name('unActivatedUser');
 
-// Страницы результатов оплаты (без авторизации)
+// Страницы результатов оплаты
 Route::get('/payment/success', function () {
     return view('payment.success');
 })->name('payment.success');
@@ -72,11 +72,8 @@ Route::get('/payment/check/{payment}', [\App\Http\Controllers\Api\PaymentControl
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 });
 
@@ -84,116 +81,75 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Защищенные маршруты
 Route::middleware(['auth'])->group(function () {
-    // Рабочие сессии
+    // Рабочие сессии (были вне activated в оригинале)
     Route::post('/work-sessions/start', WorkSessionStartController::class)->name('work-sessions.start');
-
     Route::post('/work-sessions/end', WorkSessionEndController::class)->name('work-sessions.end');
 
+    // Dashboard (всегда доступен, проверка внутри контроллера)
     Route::get('/dashboard', DashboardIndexController::class)->name('dashboard');
 
+    // Функционал, требующий активации и начала смены
     Route::middleware(['activated', 'working'])->group(function () {
         Route::get('/work-sessions/report/{user?}', WorkSessionReportController::class)->name('work-sessions.report');
 
         // Клиенты
         Route::get('/clients', ClientIndexController::class)->name('clients.index');
-
         Route::get('/clients/create', ClientCreateController::class)->name('clients.create');
-
         Route::post('/clients', ClientStoreController::class)->name('clients.store');
-
         Route::get('/clients/{client}', ClientShowController::class)->name('clients.show');
-
         Route::get('/clients/{client}/edit', ClientEditController::class)->name('clients.edit');
-
         Route::put('/clients/{client}', ClientUpdateController::class)->name('clients.update');
-
         Route::delete('/clients/{client}', ClientDestroyController::class)->name('clients.destroy');
 
         // Задачи
         Route::get('/tasks', TaskIndexController::class)->name('tasks.index');
-
         Route::get('/tasks/create', TaskCreateController::class)->name('tasks.create');
-
         Route::post('/tasks', TaskStoreController::class)->name('tasks.store');
-
         Route::get('/tasks/{task}', TaskShowController::class)->name('tasks.show');
-
         Route::get('/tasks/{task}/edit', TaskEditController::class)->name('tasks.edit');
-
         Route::put('/tasks/{task}', TaskUpdateController::class)->name('tasks.update');
-
         Route::delete('/tasks/{task}', TaskDestroyController::class)->name('tasks.destroy');
 
         // Сделки
         Route::get('/deals', DealIndexController::class)->name('deals.index');
-
         Route::get('/deals/create', DealCreateController::class)->name('deals.create');
-
         Route::post('/deals', DealStoreController::class)->name('deals.store');
-
         Route::get('/deals/{deal}', DealShowController::class)->name('deals.show');
-
         Route::get('/deals/report/day', DealReportDayController::class)->name('deals.report.day');
-
         Route::delete('/deals/{deal}', \App\Http\Controllers\Deal\DestroyController::class)->name('deals.destroy');
-
         Route::get('/deals/{deal}/edit', DealEditController::class)->name('deals.edit');
-
         Route::put('/deals/{deal}', DealUpdateController::class)->name('deals.update');
-
         Route::get('/deals/report/time', DealReportTimeController::class)->name('deals.report.time');
 
         // Заказы
         Route::get('/orders', OrderIndexController::class)->name('orders.index');
-
         Route::get('/orders/create', OrderCreateController::class)->name('orders.create');
-
         Route::post('/orders', OrderStoreController::class)->name('orders.store');
-
         Route::get('/orders/{order}', OrderShowController::class)->name('orders.show');
-
         Route::get('/orders/report/day', OrderReportDayController::class)->name('orders.report.day');
-
         Route::delete('/orders/{order}', \App\Http\Controllers\Order\DestroyController::class)->name('orders.destroy');
-
         Route::get('/orders/{order}/edit', OrderEditController::class)->name('orders.edit');
-
         Route::put('/orders/{order}', OrderUpdateController::class)->name('orders.update');
-
         Route::get('/orders/report/time', OrderReportTimeController::class)->name('orders.report.time');
 
         // Только для руководителей
         Route::middleware('head')->group(function () {
-            //планы
             Route::get('/plans/create', PlanCreateController::class)->name('plans.create');
-
             Route::post('/plans', PlanStoreController::class)->name('plans.store');
-
             Route::get('/plans', PlanIndexController::class)->name('plans.index');
-
             Route::get('/plans/{plan}', PlanShowController::class)->name('plans.show');
-
             Route::put('/plans/{user}', PlanUpdateController::class)->name('plans.update');
-
             Route::get('/plans/{plan}/edit', PlanEditController::class)->name('plans.edit');
-
             Route::delete('/plans/{plan}', \App\Http\Controllers\Plan\DestroyController::class)->name('plans.destroy');
 
-            //аналитика
             Route::prefix('analytics/ai')->name('analyticsAi.')->group(function () {
                 Route::get('/', AnalyticsIndexController::class)->name('index');
-
                 Route::get('/generate', AnalyticsGenerateController::class)->name('generate');
-
                 Route::get('/{analysisAiReport}', AnalyticsShowController::class)->name('report');
-
             });
 
-            // BlueSales синхронизация
             Route::get('/bluesales/sync', [BlueSalesSyncController::class, 'showSyncForm'])->name('bluesales.sync.form');
             Route::post('/bluesales/sync', [BlueSalesSyncController::class, 'sync'])->name('bluesales.sync');
         });
     });
 });
-
-
