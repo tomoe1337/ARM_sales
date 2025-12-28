@@ -155,10 +155,14 @@
             </div>
 
             @if($status['ends_at'])
-                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                <div class="mt-4 p-3 @if($this->subscription && $this->subscription->isExpired()) bg-red-50 dark:bg-red-900/20 @else bg-blue-50 dark:bg-blue-900/20 @endif rounded-lg">
+                    <div class="text-sm @if($this->subscription && $this->subscription->isExpired()) text-red-700 dark:text-red-300 @else text-gray-700 dark:text-gray-300 @endif">
                         @if($this->subscription && $this->subscription->isTrial())
                             Пробный период до: <strong>{{ $status['trial_ends_at']->format('d.m.Y') }}</strong>
+                        @elseif($this->subscription && $this->subscription->trial_ends_at && $this->subscription->trial_ends_at->isPast())
+                            Пробный период закончился: <strong>{{ $this->subscription->trial_ends_at->format('d.m.Y') }}</strong>
+                        @elseif($this->subscription && $this->subscription->isExpired())
+                            Подписка истекла: <strong>{{ $status['ends_at']->format('d.m.Y') }}</strong>
                         @else
                             Подписка действует до: <strong>{{ $status['ends_at']->format('d.m.Y') }}</strong>
                         @endif

@@ -161,9 +161,9 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 if ($state) {
                                                     $plan = \App\Models\SubscriptionPlan::find($state);
                                                     if ($plan) {
-                                                        $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
-                                                        $months = $get('months') ?? 1;
-                                                        $newMonthlyPrice = $limit * $plan->price_per_user;
+                                                        $limit = (int)($get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1);
+                                                        $months = (int)($get('months') ?? 1);
+                                                        $newMonthlyPrice = $limit * (float)$plan->price_per_user;
                                                         
                                                         if (!$subscription || $subscription->isTrial() || $subscription->isExpired()) {
                                                             $set('total_price', round($newMonthlyPrice * $months, 2));
@@ -209,8 +209,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 if ($planId && $state > 0) {
                                                     $plan = \App\Models\SubscriptionPlan::find($planId);
                                                     if ($plan) {
-                                                        $months = $get('months') ?? 1;
-                                                        $newMonthlyPrice = $state * $plan->price_per_user;
+                                                        $months = (int)($get('months') ?? 1);
+                                                        $newMonthlyPrice = (int)$state * (float)$plan->price_per_user;
                                                         
                                                         if (!$subscription || $subscription->isTrial() || $subscription->isExpired()) {
                                                             $set('total_price', round($newMonthlyPrice * $months, 2));
@@ -262,9 +262,9 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 if ($planId) {
                                                     $plan = \App\Models\SubscriptionPlan::find($planId);
                                                     if ($plan) {
-                                                        $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
-                                                        $months = $get('months') ?? 1;
-                                                        $newMonthlyPrice = $limit * $plan->price_per_user;
+                                                        $limit = (int)($get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1);
+                                                        $months = (int)($get('months') ?? 1);
+                                                        $newMonthlyPrice = $limit * (float)$plan->price_per_user;
                                                         
                                                         if (!$subscription || $subscription->isTrial() || $subscription->isExpired()) {
                                                             $set('total_price', round($newMonthlyPrice * $months, 2));
@@ -332,8 +332,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 $subscription = $this->subscription;
                                                 // Пересчитываем цену после загрузки формы
                                                 $planId = $get('subscription_plan_id') ?? $subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
-                                                $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
-                                                $months = $get('months') ?? 1;
+                                                $limit = (int)($get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1);
+                                                $months = (int)($get('months') ?? 1);
                                                 
                                                 if (!$planId || !$subscription) {
                                                     $set('total_price', 0);
@@ -346,8 +346,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                             ->default(function (Forms\Get $get) {
                                                 $subscription = $this->subscription;
                                                 $planId = $get('subscription_plan_id') ?? $subscription?->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
-                                                $limit = $get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1;
-                                                $months = $get('months') ?? 1;
+                                                $limit = (int)($get('paid_users_limit') ?? $subscription?->paid_users_limit ?? 1);
+                                                $months = (int)($get('months') ?? 1);
                                                 
                                                 if (!$planId || !$subscription) {
                                                     return 0;
@@ -358,16 +358,16 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     return 0;
                                                 }
                                                 
-                                                $newMonthlyPrice = $limit * $plan->price_per_user;
-                                                $oldMonthlyPrice = $subscription->monthly_price;
+                                                $newMonthlyPrice = $limit * (float)$plan->price_per_user;
+                                                $oldMonthlyPrice = (float)$subscription->monthly_price;
                                                 
-                                                if ($limit == $subscription->paid_users_limit && $planId == $subscription->subscription_plan_id) {
+                                                if ($limit == (int)$subscription->paid_users_limit && $planId == $subscription->subscription_plan_id) {
                                                     return $newMonthlyPrice * $months;
                                                 }
                                                 
-                                $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
-                                $priceDifference = $newMonthlyPrice - $oldMonthlyPrice;
-                                $proportionalPrice = $this->subscriptionService->calculateProportionalPrice($priceDifference, $daysRemaining, now());
+                                                $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
+                                                $priceDifference = $newMonthlyPrice - $oldMonthlyPrice;
+                                                $proportionalPrice = (float)$this->subscriptionService->calculateProportionalPrice($priceDifference, $daysRemaining, now());
                                                 
                                                 return $proportionalPrice + ($newMonthlyPrice * ($months - 1)) + $newMonthlyPrice;
                                             })
@@ -378,36 +378,36 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 }
                                                 
                                                 $planId = $get('subscription_plan_id') ?? $subscription->subscription_plan_id ?? \App\Models\SubscriptionPlan::getStandard()->id;
-                                                $limit = $get('paid_users_limit') ?? $subscription->paid_users_limit ?? 1;
-                                                $months = $get('months') ?? 1;
+                                                $limit = (int)($get('paid_users_limit') ?? $subscription->paid_users_limit ?? 1);
+                                                $months = (int)($get('months') ?? 1);
                                                 
                                                 $plan = \App\Models\SubscriptionPlan::find($planId);
                                                 if (!$plan) {
                                                     return 'Заполните все поля';
                                                 }
                                                 
-                                                $newMonthlyPrice = $limit * $plan->price_per_user;
+                                                $newMonthlyPrice = $limit * (float)$plan->price_per_user;
                                                 
                                                 // Если нет активной подписки или она пробная/истекла - просто полная оплата
                                                 if (!$subscription || $subscription->isTrial() || $subscription->isExpired()) {
                                                     $html = '<div class="text-sm space-y-1">';
                                                     $html .= '<div>Тариф: <span class="font-medium">' . $plan->name . '</span></div>';
                                                     $html .= '<div>Пользователей: <span class="font-medium">' . $limit . '</span></div>';
-                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format($plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
+                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format((float)$plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
                                                     $html .= '<div>Период: <span class="font-medium">' . $months . ' ' . ($months == 1 ? 'месяц' : ($months < 5 ? 'месяца' : 'месяцев')) . '</span></div>';
                                                     $html .= '</div>';
                                                     return new \Illuminate\Support\HtmlString($html);
                                                 }
                                                 
-                                                $oldMonthlyPrice = $subscription->monthly_price;
+                                                $oldMonthlyPrice = (float)$subscription->monthly_price;
                                                 
                                                 // Продление на тех же условиях
-                                                if ($limit == $subscription->paid_users_limit && $planId == $subscription->subscription_plan_id) {
+                                                if ($limit == (int)$subscription->paid_users_limit && $planId == $subscription->subscription_plan_id) {
                                                     $html = '<div class="text-sm space-y-1">';
                                                     $html .= '<div class="font-semibold">Продление подписки</div>';
                                                     $html .= '<div>Тариф: <span class="font-medium">' . $plan->name . '</span></div>';
                                                     $html .= '<div>Пользователей: <span class="font-medium">' . $limit . '</span></div>';
-                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format($plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
+                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format((float)$plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
                                                     $html .= '<div>Период: <span class="font-medium">' . $months . ' ' . ($months == 1 ? 'месяц' : ($months < 5 ? 'месяца' : 'месяцев')) . '</span></div>';
                                                     $html .= '</div>';
                                                     return new \Illuminate\Support\HtmlString($html);
@@ -417,7 +417,7 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                 if ($subscription->isActive()) {
                                                     $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
                                                     $priceDifference = $newMonthlyPrice - $oldMonthlyPrice;
-                                                    $proportionalPrice = $this->subscriptionService->calculateProportionalPrice($priceDifference, $daysRemaining, now());
+                                                    $proportionalPrice = (float)$this->subscriptionService->calculateProportionalPrice($priceDifference, $daysRemaining, now());
                                                     $futureMonths = round($newMonthlyPrice * ($months - 1), 2);
                                                     $total = round($proportionalPrice + $futureMonths + $newMonthlyPrice, 2);
                                                     
@@ -428,12 +428,12 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     $html .= '<div class="pl-4 space-y-0.5 text-xs">';
                                                     $html .= '<div>Тариф: <span class="font-medium">' . $plan->name . '</span></div>';
                                                     $html .= '<div>Пользователей: <span class="font-medium">' . $limit . '</span></div>';
-                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format($plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
+                                                    $html .= '<div>Цена за пользователя: <span class="font-medium">' . number_format((float)$plan->price_per_user, 2, ',', ' ') . '₽</span></div>';
                                                     $html .= '<div>Период: <span class="font-medium">' . $months . ' ' . ($months == 1 ? 'месяц' : ($months < 5 ? 'месяца' : 'месяцев')) . '</span></div>';
                                                     $html .= '<div>Сумма: <span class="font-medium">' . number_format($futureMonths + $newMonthlyPrice, 2, ',', ' ') . '₽</span></div>';
                                                     $html .= '</div>';
                                                     if ($proportionalPrice > 0) {
-                                                        $oldUsersCount = $subscription->paid_users_limit;
+                                                        $oldUsersCount = (int)$subscription->paid_users_limit;
                                                         $newUsersCount = $limit;
                                                         $addedUsers = $newUsersCount - $oldUsersCount;
                                                         
@@ -506,7 +506,7 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     return;
                                                 }
                                                 
-                                                if ($state <= $subscription->paid_users_limit) {
+                                                if ($state <= (int)$subscription->paid_users_limit) {
                                                     $set('upgrade_total_price', 0);
                                                     return;
                                                 }
@@ -517,8 +517,8 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     return;
                                                 }
                                                 
-                                                $addedUsers = $state - $subscription->paid_users_limit;
-                                                $pricePerUser = $plan->price_per_user;
+                                                $addedUsers = (int)$state - (int)$subscription->paid_users_limit;
+                                                $pricePerUser = (float)$plan->price_per_user;
                                                 
                                                 $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
                                                 $monthlyPriceForAddedUsers = $addedUsers * $pricePerUser;
@@ -534,14 +534,14 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
                                                     return 'Доступно только для активной подписки';
                                                 }
                                                 
-                                                $newCount = $get('upgrade_users_count') ?? $subscription->paid_users_limit;
-                                                if ($newCount <= $subscription->paid_users_limit) {
+                                                $newCount = (int)($get('upgrade_users_count') ?? $subscription->paid_users_limit);
+                                                if ($newCount <= (int)$subscription->paid_users_limit) {
                                                     return 'Укажите количество больше текущего (' . $subscription->paid_users_limit . ')';
                                                 }
                                                 
-                                                $addedUsers = $newCount - $subscription->paid_users_limit;
+                                                $addedUsers = $newCount - (int)$subscription->paid_users_limit;
                                                 $plan = $subscription->plan;
-                                                $pricePerUser = $plan->price_per_user;
+                                                $pricePerUser = (float)$plan->price_per_user;
                                                 
                                                 $daysRemaining = (int) max(0, now()->diffInDays($subscription->ends_at, false));
                                                 $monthlyPriceForAddedUsers = $addedUsers * $pricePerUser;

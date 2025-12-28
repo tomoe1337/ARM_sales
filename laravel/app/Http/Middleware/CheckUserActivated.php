@@ -16,8 +16,25 @@ class CheckUserActivated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && !Auth::user()->is_active) {
+        if (!Auth::check()) {
+            return $next($request);
+        }
+
+        $user = Auth::user();
+
+        // 1. Проверка личной активности пользователя
+        if (!$user->is_active) {
             return redirect()->route('dashboard')->with('error', 'Ваш аккаунт заморожен.');
+        }
+
+        // 2. Проверка подписки отдела
+        // Если у пользователя есть отдел, проверяем его подписку
+        if ($user->department_id) {
+            $department = $user->department;
+            
+            if (!$department || !$department->getActiveSubscription()) {
+                return redirect()->route('unActivatedUser');
+            }
         }
 
         return $next($request);
