@@ -114,18 +114,16 @@ class YookassaGateway extends AbstractGateway
      */
     public function handleCallback(array $data): Payment
     {
-        Log::info('Получен вебхук от ЮKassa', $data);
+        // Если $data пуста, пробуем получить её из запроса Laravel
+        if (empty($data)) {
+            $data = request()->json()->all();
+        }
+
+        Log::channel('yookassa')->info('Обработка вебхука ЮKassa', $data);
 
         try {
-            // Если $data пуста (такое бывает если JSON не распарсился Laravel),
-            // пробуем прочитать тело напрямую
             if (empty($data)) {
-                $source = file_get_contents('php://input');
-                $data = json_decode($source, true);
-            }
-
-            if (!$data) {
-                throw new Exception('Empty or invalid data in YooKassa webhook');
+                throw new Exception('Empty data in YooKassa webhook');
             }
 
             $notification = ($data['event'] === NotificationEventType::PAYMENT_SUCCEEDED)
@@ -152,22 +150,32 @@ class YookassaGateway extends AbstractGateway
                 'paid_at' => now(),
             ]);
 
+            // Отмечаем в организации, что триал использован (так как пошла реальная оплата)
+            if ($payment->organization && !$payment->organization->trial_used_at) {
+                $payment->organization->update(['trial_used_at' => now()]);
+            }
+
             // Активируем подписки
             foreach ($payment->subscriptions as $subscription) {
                 $userLimit = $payment->provider_data['user_limit'] ?? $subscription->paid_users_limit;
                 $months = $payment->months ?? 1;
+                $planId = $payment->provider_data['plan_id'] ?? $subscription->subscription_plan_id;
 
-                $startsAt = $subscription->isTrial() || $subscription->isExpired() ? now() : $subscription->starts_at;
-                $endsAt = $subscription->isActive()
-                    ? $subscription->ends_at->copy()->addMonths($months)
-                    : $startsAt->copy()->addMonths($months);
+                $isTrialOrExpired = $subscription->isTrial() || $subscription->isExpired();
+                
+                $startsAt = $isTrialOrExpired ? now() : $subscription->starts_at;
+                $endsAt = $isTrialOrExpired 
+                    ? now()->copy()->addMonths($months) 
+                    : $subscription->ends_at->copy()->addMonths($months);
 
                 $subscription->update([
                     'status' => 'active',
                     'paid_by' => $payment->paid_by,
+                    'subscription_plan_id' => $planId,
                     'paid_users_limit' => $userLimit,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
+                    'trial_ends_at' => null, // ВАЖНО: Убираем статус пробного периода
                 ]);
             }
 

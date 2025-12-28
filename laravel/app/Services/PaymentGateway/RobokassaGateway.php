@@ -152,14 +152,21 @@ class RobokassaGateway extends AbstractGateway
                 'paid_at' => now(),
             ]);
 
+            // Отмечаем в организации, что триал использован
+            if ($payment->organization && !$payment->organization->trial_used_at) {
+                $payment->organization->update(['trial_used_at' => now()]);
+            }
+
             foreach ($payment->subscriptions as $subscription) {
                 $userLimit = $payment->provider_data['user_limit'] ?? $subscription->paid_users_limit;
                 $months = $payment->months ?? 1;
 
-                $startsAt = $subscription->isTrial() || $subscription->isExpired() ? now() : $subscription->starts_at;
-                $endsAt = $subscription->isActive() 
-                    ? $subscription->ends_at->copy()->addMonths($months) 
-                    : $startsAt->copy()->addMonths($months);
+                $isTrialOrExpired = $subscription->isTrial() || $subscription->isExpired();
+                
+                $startsAt = $isTrialOrExpired ? now() : $subscription->starts_at;
+                $endsAt = $isTrialOrExpired 
+                    ? now()->copy()->addMonths($months) 
+                    : $subscription->ends_at->copy()->addMonths($months);
 
                 $subscription->update([
                     'status' => 'active',
@@ -167,6 +174,7 @@ class RobokassaGateway extends AbstractGateway
                     'paid_users_limit' => $userLimit,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
+                    'trial_ends_at' => null, // Убираем статус пробного периода
                 ]);
             }
 

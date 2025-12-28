@@ -43,6 +43,11 @@ class Organization extends Model
         return $this->hasMany(User::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     /**
      * Проверка и обновление флага is_single_department
      */
@@ -64,6 +69,11 @@ class Organization extends Model
      */
     public function hasUsedTrial(): bool
     {
-        return $this->trial_used_at !== null;
+        if ($this->trial_used_at !== null) {
+            return true;
+        }
+
+        // Если организация уже что-то оплачивала, пробный период ей больше не положен
+        return $this->payments()->where('status', 'succeeded')->exists();
     }
 }
