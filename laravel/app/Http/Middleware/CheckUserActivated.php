@@ -17,7 +17,7 @@ class CheckUserActivated
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check() && !Auth::user()->isEffectivelyActivated()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('dashboard'); 
         }
 
         return $next($request);
