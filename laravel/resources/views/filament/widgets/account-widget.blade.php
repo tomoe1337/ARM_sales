@@ -20,16 +20,15 @@
             </div>
 
             <div class="my-auto">
-                <a href="{{ route('dashboard') }}">
-                    <x-filament::button
-                        color="gray"
-                        icon="heroicon-m-arrow-left"
-                        labeled-from="sm"
-                        tag="a"
-                    >
-                        Перейти в приложение
-                    </x-filament::button>
-                </a>
+                <x-filament::button
+                    color="gray"
+                    icon="heroicon-m-arrow-left"
+                    labeled-from="sm"
+                    tag="a"
+                    :href="route('dashboard')"
+                >
+                    Перейти в приложение
+                </x-filament::button>
             </div>
         </div>
     </x-filament::section>
