@@ -4,16 +4,38 @@
 
 1. Клонируйте репозиторий.
 2. Создайте `laravel/.env` на основе `laravel/.env.example`.
-3. Запустите проект:
+3. **Для работы очередей** добавьте в `laravel/.env`:
+   ```env
+   QUEUE_CONNECTION=database
+   ```
+4. Запустите проект:
    ```bash
    docker-compose up -d
    ```
-4. Установите зависимости:
+5. Установите зависимости:
    ```bash
    docker-compose exec php composer install
    docker-compose exec php php artisan key:generate
    docker-compose exec php php artisan migrate --seed
    ```
+
+### 🔄 Запуск воркера очередей (опционально)
+
+Для обработки фоновых задач (AI отчеты, синхронизация BlueSales):
+
+```bash
+# Удалить старые контейнеры воркеров (если были)
+docker rm -f arm_queue_default arm_queue_ai arm_queue_sync arm_cron 2>/dev/null || true
+
+# Запустить воркер очередей
+docker-compose --profile workers up -d
+
+# Остановить воркер
+docker-compose --profile workers down
+
+# Просмотр логов
+docker logs -f arm_default_queue_worker
+```
 
 ---
 

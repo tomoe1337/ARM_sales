@@ -24,7 +24,6 @@ class AnalyticsAiService
                 'orders.*',
                 'users.full_name as employee_name'
             )
-            ->withoutGlobalScope(\App\Models\Scopes\OrganizationScope::class)
             ->get();
 
         if ($array_output) {

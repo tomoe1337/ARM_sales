@@ -45,12 +45,25 @@ class DepartmentResource extends Resource
                         
                         Forms\Components\Select::make('head_id')
                             ->label('Руководитель отдела')
-                            ->relationship('head', 'name', fn (Builder $query) => 
-                                $query->where('organization_id', auth()->user()->organization_id)
-                            )
+                            ->relationship('head', 'name', function (Builder $query, $get, $record) {
+                                // Базовая фильтрация по организации
+                                $query->where('organization_id', auth()->user()->organization_id);
+                                
+                                // При редактировании показываем только сотрудников этого отдела
+                                if ($record && $record->id) {
+                                    $query->where('department_id', $record->id);
+                                }
+                                // При создании показываем всех из организации
+                                // (можно назначить руководителя, затем он переведет других в отдел)
+                            })
                             ->searchable()
                             ->preload()
-                            ->nullable(),
+                            ->nullable()
+                            ->helperText(fn ($record) => 
+                                $record?->id 
+                                    ? 'Показаны только сотрудники данного отдела' 
+                                    : 'После создания отдела перенесите сотрудников в него'
+                            ),
                         
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активен')

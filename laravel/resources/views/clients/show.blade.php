@@ -142,8 +142,8 @@
                     </dl>
 
                     <div class="mt-4">
-                        <a href="{{ route('deals.create', ['client_id' => $client->id]) }}" class="btn btn-primary">
-                            Создать сделку
+                        <a href="{{ route('orders.create', ['client_id' => $client->id]) }}" class="btn btn-primary">
+                            Создать заказ
                         </a>
                         <a href="{{ route('clients.index') }}" class="btn btn-secondary">
                             Назад к списку клиентов

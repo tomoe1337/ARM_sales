@@ -37,7 +37,7 @@ return [
 
     'payment' => [
         'mode' => env('PAYMENT_MODE', 'test'), // test или live
-        'gateway' => env('PAYMENT_GATEWAY', 'robokassa'),
+        'gateway' => env('PAYMENT_GATEWAY', 'yookassa'),
     ],
 
         'robokassa' => [

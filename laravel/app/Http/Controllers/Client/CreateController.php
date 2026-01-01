@@ -13,7 +13,8 @@ class CreateController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $employees = User::all();
+        // Получаем пользователей только из своего отдела
+        $employees = User::where('department_id', auth()->user()->department_id)->get();
         return view('clients.create',compact('employees'));
     }
 }

@@ -43,15 +43,6 @@ services:
       DB_USERNAME: arm_user
       DB_PASSWORD: arm_password_2024
       
-      # Laravel
-      APP_ENV: local
-      APP_DEBUG: true
-      
-      # Cache & Sessions
-      CACHE_DRIVER: file
-      SESSION_DRIVER: file
-      QUEUE_CONNECTION: sync
-      
       # PsySH (Tinker) configuration
       XDG_CONFIG_HOME: /var/www/html/.config
     depends_on:
@@ -59,6 +50,32 @@ services:
         condition: service_healthy
     networks:
       - arm_network
+
+  # Queue Worker
+  queue-worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: arm_default_queue_worker
+    restart: unless-stopped
+    command: php /var/www/html/artisan queue:work database --queue=default --tries=3 --timeout=300 --sleep=3
+    volumes:
+      - ./laravel:/var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: arm_sales
+      DB_USERNAME: arm_user
+      DB_PASSWORD: arm_password_2024
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - arm_network
+    profiles:
+      - workers
 
   # Nginx Alpine
   nginx:

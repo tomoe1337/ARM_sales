@@ -22,7 +22,8 @@ class CreateController extends Controller
         }
 
         $clients = Client::where('user_id', Auth::id())->get();
-        $users = User::all(); // Получаем всех пользователей
+        // Получаем пользователей только из своего отдела
+        $users = User::where('department_id', Auth::user()->department_id)->get();
 
         return view('orders.create', compact('clients', 'selectedClient', 'selectedClientId', 'users'));
     }

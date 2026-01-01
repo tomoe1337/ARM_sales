@@ -33,18 +33,22 @@ class DashboardService
             // Так как BlueSales API не предоставляет информацию о типах статусов,
             // заказ создается в момент получения оплаты как факт оплаты
             if ($user->isHead()) {
-                $dashboardData['monthlyRevenue'] = Order::whereMonth('updated_at', now()->month)
+                $dashboardData['monthlyRevenue'] = Order::where('department_id', $user->department_id)
+                    ->whereMonth('updated_at', now()->month)
                     ->whereYear('updated_at', now()->year)
                     ->sum('total_amount');
 
-                $dashboardData['todayRevenue'] = Order::whereDate('updated_at', now()->toDateString())
+                $dashboardData['todayRevenue'] = Order::where('department_id', $user->department_id)
+                    ->whereDate('updated_at', now()->toDateString())
                     ->sum('total_amount');
                     
-                $dashboardData['wonDealsCount'] = Order::whereMonth('updated_at', now()->month)
+                $dashboardData['wonDealsCount'] = Order::where('department_id', $user->department_id)
+                    ->whereMonth('updated_at', now()->month)
                     ->whereYear('updated_at', now()->year)
                     ->count();
 
-                $dashboardData['monthlyPlan'] = Plan::sum('monthly_plan');
+                $dashboardData['monthlyPlan'] = Plan::where('department_id', $user->department_id)
+                    ->sum('monthly_plan');
                 $dashboardData['percentageCompleted'] = $dashboardData['monthlyPlan'] > 0
                     ? round(($dashboardData['monthlyRevenue'] / $dashboardData['monthlyPlan']) * 100, 2)
                     : 0;

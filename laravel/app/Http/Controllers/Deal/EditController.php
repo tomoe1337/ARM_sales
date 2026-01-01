@@ -17,7 +17,8 @@ class EditController extends Controller
         abort_unless($deal->canEdit($user), 403, 'У вас нет прав для редактирования этой сделки');
 
         $clients = Client::where('user_id', auth()->id())->get();
-        $users = User::all(); // Получаем всех пользователей
+        // Получаем пользователей только из своего отдела
+        $users = User::where('department_id', Auth::user()->department_id)->get();
 
         return view('deals.edit', compact('deal', 'clients', 'users'));
     }

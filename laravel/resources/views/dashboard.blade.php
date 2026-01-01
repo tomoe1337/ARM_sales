@@ -172,7 +172,7 @@
                                     @foreach($dashboardData['latestOrders'] as $order)
                                         <tr>
                                             <td><a href="{{ route('orders.show', $order) }}">{{ $order->bluesales_id }}</a></td>
-                                            <td>{{ $order->client->name }}</td>
+                                            <td>{{ $order->client?->name ?? 'Не указан' }}</td>
                                             <td>{{ number_format($order->total_amount, 2) }} ₽</td>
                                             <td>
                                                 @switch($order->status)
