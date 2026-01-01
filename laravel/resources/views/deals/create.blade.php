@@ -1,0 +1,81 @@
+@extends('layouts.app')
+
+@section('title', 'Создать сделку')
+
+@section('content')
+    <div class="container">
+        @isset($selectedClient)
+            <h1>Создать сделку с клиентом {{ $selectedClient->name }}</h1>
+ @else
+            <h1>Создать новую сделку</h1>
+ @endisset
+
+        <form action="{{ route('deals.store') }}" method="POST">
+            @csrf
+
+            <div class="mb-3">
+                <label for="client_id" class="form-label">ID Клиента</label>
+                <input type="text" class="form-control @error('client_id') is-invalid @enderror" id="client_id" name="client_id" value="{{ old('client_id', $selectedClientId ?? '') }}" {{ isset($selectedClientId) ? 'disabled' : '' }} required>
+                @error('client_id')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            @isset($selectedClientId)
+                <input type="hidden" name="client_id" value="{{ $selectedClientId }}">
+            @endisset
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Название сделки</label>
+                <input type="text" class="form-control @error('name') is-invalid @enderror" id="title" name="title" value="{{ old('name') }}" required>
+                @error('name')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="amount" class="form-label">Сумма</label>
+                <input type="number" class="form-control @error('amount') is-invalid @enderror" id="amount" name="amount" value="{{ old('amount') }}" required min="0">
+                @error('amount')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="user_id" class="form-label">Сотрудник</label>
+                <select class="form-select @error('user_id') is-invalid @enderror" id="user_id" name="user_id" required>
+                    <option value="">Выберите сотрудника</option>
+                    {{-- Предполагается, что у вас есть переменная $users, содержащая список сотрудников --}}
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}" {{ (old('user_id') == $user->id) ? 'selected' : '' }}>
+                            {{ $user->full_name ?? 'Неизвестный пользователь' }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('user_id')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание</label>
+                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                @error('description')
+ <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            <button type="submit" class="btn btn-primary">Сохранить сделку</button>
+        </form>
+    </div>
+@endsection

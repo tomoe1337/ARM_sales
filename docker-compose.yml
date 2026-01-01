@@ -1,0 +1,86 @@
+version: '3.9'
+
+services:
+  # PostgreSQL 15 Alpine
+  postgres:
+    image: postgres:15-alpine
+    container_name: arm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arm_sales
+      POSTGRES_USER: arm_user
+      POSTGRES_PASSWORD: arm_password_2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - arm_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arm_user -d arm_sales"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    shm_size: 128mb
+
+  # PHP 8.4-FPM Alpine
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: arm_php
+    restart: unless-stopped
+    volumes:
+      - ./laravel:/var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      # Database
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: arm_sales
+      DB_USERNAME: arm_user
+      DB_PASSWORD: arm_password_2024
+      
+      # Laravel
+      APP_ENV: local
+      APP_DEBUG: true
+      
+      # Cache & Sessions
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+      
+      # PsySH (Tinker) configuration
+      XDG_CONFIG_HOME: /var/www/html/.config
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - arm_network
+
+  # Nginx Alpine
+  nginx:
+    image: nginx:alpine
+    container_name: arm_nginx
+    restart: unless-stopped
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./laravel:/var/www/html:ro
+      - ./docker/nginx/${NGINX_CONF:-default.conf}:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - arm_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  arm_network:
+    driver: bridge

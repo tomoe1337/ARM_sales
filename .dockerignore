@@ -1,0 +1,45 @@
+# Node modules
+laravel/node_modules
+
+# Vendor
+laravel/vendor
+
+# Environment
+laravel/.env
+laravel/.env.backup
+
+# Storage
+laravel/storage/logs/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+!laravel/storage/logs/.gitkeep
+!laravel/storage/framework/cache/.gitkeep
+!laravel/storage/framework/sessions/.gitkeep
+!laravel/storage/framework/views/.gitkeep
+
+# Git
+.git
+.github
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+DEPLOYMENT.md
+
+# Tests
+tests
+phpunit.xml
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
