@@ -210,8 +210,6 @@
                                 <thead>
                                     <tr>
                                         <th>Имя</th>
-                                        <th>Телефон</th>
-                                        <th>Email</th>
                                         <th>Заказов</th>
                                     </tr>
                                 </thead>
@@ -219,8 +217,6 @@
                                     @foreach($dashboardData['latestClients'] as $client)
                                         <tr>
                                             <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
-                                            <td>{{ $client->phone }}</td>
-                                            <td>{{ $client->email }}</td>
                                             <td>{{ $client->orders_count }}</td>
                                         </tr>
                                     @endforeach

@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use App\Models\Client;
 use App\Models\Deal;
 use App\Models\User;
+use App\Observers\ClientObserver;
 use App\Observers\DealObserver;
 use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +40,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Log::info('AppServiceProvider boot method called');
+        
+        try {
+            Client::observe(ClientObserver::class);
+            \Log::info('ClientObserver registered successfully');
+        } catch (\Exception $e) {
+            \Log::error('Failed to register ClientObserver', [
+                'error' => $e->getMessage()
+            ]);
+        }
+        
         Deal::observe(DealObserver::class);
         User::observe(UserObserver::class);
     }

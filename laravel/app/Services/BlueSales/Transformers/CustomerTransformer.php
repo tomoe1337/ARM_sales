@@ -63,4 +63,93 @@ class CustomerTransformer
         // Пока просто возвращаем 1, можно будет доработать поиск по email
         return 1;
     }
+
+    public static function toBlueSalesData(\App\Models\Client $client, bool $includeManager = false): array
+    {
+        // При создании нужно добавить пустой id
+        $mapping = [
+            'id' => $client->bluesales_id ?? '',
+            'fullName' => $client->full_name ?? $client->name ?? '',
+            'phone' => $client->phone ?? '',
+            'email' => $client->email ?? '',
+            'address' => $client->address ?? '',
+            'otherContacts' => $client->additional_contacts ?? '',
+            'shortNotes' => '',
+            'comments' => $client->description ?? '',
+        ];
+
+        // Country должен быть объектом
+        if ($client->country) {
+            $mapping['country'] = ['name' => $client->country];
+        } else {
+            $mapping['country'] = ['name' => ''];
+        }
+
+        // City должен быть объектом
+        if ($client->city) {
+            $mapping['city'] = ['name' => $client->city];
+        } else {
+            $mapping['city'] = ['name' => ''];
+        }
+
+        // Birthday в формате YYYY-MM-DD или пустая строка
+        $mapping['birthday'] = $client->birth_date ? $client->birth_date->format('Y-m-d') : '';
+
+        // Sex: M или F
+        if ($client->gender) {
+            $mapping['sex'] = $client->gender === 'male' ? 'M' : 'F';
+        } else {
+            $mapping['sex'] = '';
+        }
+
+        // VK должен быть объектом с id и name
+        if ($client->vk_id) {
+            $mapping['vk'] = ['id' => $client->vk_id, 'name' => ''];
+        } else {
+            $mapping['vk'] = ['id' => '', 'name' => ''];
+        }
+
+        // OK должен быть объектом с id и name
+        if ($client->ok_id) {
+            $mapping['ok'] = ['id' => $client->ok_id, 'name' => ''];
+        } else {
+            $mapping['ok'] = ['id' => '', 'name' => ''];
+        }
+
+        // CrmStatus должен быть объектом
+        if ($client->crm_status) {
+            $mapping['crmStatus'] = ['name' => $client->crm_status];
+        } else {
+            $mapping['crmStatus'] = ['name' => ''];
+        }
+
+        // FirstContactDate в формате YYYY-MM-DD или пустая строка
+        $mapping['firstContactDate'] = $client->first_contact_date ? $client->first_contact_date->format('Y-m-d') : '';
+
+        // NextContactDate в формате YYYY-MM-DD или пустая строка
+        $mapping['nextContactDate'] = $client->next_contact_date ? $client->next_contact_date->format('Y-m-d') : '';
+
+        // Source должен быть объектом с name и autoCreate
+        if ($client->source) {
+            $mapping['source'] = ['name' => $client->source, 'autoCreate' => true];
+        } else {
+            $mapping['source'] = ['name' => '', 'autoCreate' => true];
+        }
+
+        // SalesChannel должен быть объектом
+        if ($client->sales_channel) {
+            $mapping['salesChannel'] = ['name' => $client->sales_channel];
+        } else {
+            $mapping['salesChannel'] = ['name' => ''];
+        }
+
+        // Manager должен быть объектом с login и name
+        if ($includeManager && $client->user?->email) {
+            $mapping['manager'] = ['login' => $client->user->email, 'name' => ''];
+        } else {
+            $mapping['manager'] = ['login' => '', 'name' => ''];
+        }
+
+        return $mapping;
+    }
 }

@@ -146,4 +146,138 @@ class BlueSalesApiService
             return [];
         }
     }
+
+    public function createCustomer(array $customerData): ?string
+    {
+        try {
+            Log::info('BlueSales API request to create customer', ['data' => $customerData]);
+            
+            $url = $this->baseUrl . 'Customers/WebServer.aspx?' . http_build_query([
+                'login' => $this->login,
+                'password' => $this->apiKey,
+                'command' => 'customers.add'
+            ]);
+            
+            Log::info('BlueSales API URL', ['url' => $url]);
+            
+            $response = Http::timeout(30)
+                ->withOptions(['verify' => config('app.env') === 'production'])
+                ->post($url, $customerData);
+
+            $status = $response->status();
+            $body = $response->body();
+            
+            // Безопасный парсинг JSON
+            $jsonData = null;
+            try {
+                $jsonData = $response->json();
+            } catch (\Exception $e) {
+                Log::warning('Failed to parse JSON response', [
+                    'body' => $body,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            Log::info('BlueSales API response', [
+                'status' => $status,
+                'body' => $body,
+                'body_length' => strlen($body),
+                'json' => $jsonData,
+                'is_successful' => $response->successful(),
+                'headers' => $response->headers()
+            ]);
+
+            if ($response->successful()) {
+                // Проверяем разные возможные форматы ответа
+                if (isset($jsonData['id'])) {
+                    Log::info('BlueSales customer created', ['bluesales_id' => $jsonData['id']]);
+                    return (string) $jsonData['id'];
+                }
+                
+                // Возможно, ID приходит в другом поле или структуре
+                if (isset($jsonData['customerId'])) {
+                    Log::info('BlueSales customer created', ['bluesales_id' => $jsonData['customerId']]);
+                    return (string) $jsonData['customerId'];
+                }
+                
+                // Проверяем, может быть ответ - это просто число (ID)
+                if (is_numeric($jsonData)) {
+                    Log::info('BlueSales customer created', ['bluesales_id' => $jsonData]);
+                    return (string) $jsonData;
+                }
+                
+                // Если ответ - массив с одним элементом
+                if (is_array($jsonData) && count($jsonData) === 1 && isset($jsonData[0])) {
+                    $firstItem = $jsonData[0];
+                    if (isset($firstItem['id'])) {
+                        Log::info('BlueSales customer created', ['bluesales_id' => $firstItem['id']]);
+                        return (string) $firstItem['id'];
+                    }
+                }
+                
+                Log::warning('BlueSales customer creation returned no ID', [
+                    'response' => $jsonData,
+                    'body' => $body,
+                    'status' => $status
+                ]);
+                return null;
+            }
+
+            Log::error('BlueSales API error creating customer', [
+                'status' => $status,
+                'body' => $body,
+                'json' => $jsonData
+            ]);
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('BlueSales API exception creating customer', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return null;
+        }
+    }
+
+    public function updateCustomer(string $bluesalesId, array $customerData): bool
+    {
+        try {
+            Log::info('BlueSales API request to update customer', [
+                'bluesales_id' => $bluesalesId,
+                'data' => $customerData
+            ]);
+            
+            $url = $this->baseUrl . 'Customers/WebServer.aspx?' . http_build_query([
+                'login' => $this->login,
+                'password' => $this->apiKey,
+                'command' => 'customers.update'
+            ]);
+            
+            $customerData['id'] = (int) $bluesalesId;
+            
+            $response = Http::timeout(30)
+                ->withOptions(['verify' => config('app.env') === 'production'])
+                ->post($url, $customerData);
+
+            if ($response->successful()) {
+                Log::info('BlueSales customer updated', ['bluesales_id' => $bluesalesId]);
+                return true;
+            }
+
+            Log::error('BlueSales API error updating customer', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error('BlueSales API exception updating customer', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return false;
+        }
+    }
 }
