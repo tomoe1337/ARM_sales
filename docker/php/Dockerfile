@@ -32,8 +32,7 @@ RUN set -eux; \
       git \
       wget \
       dcron \
-      dcron-openrc \
-      su-exec; \
+      dcron-openrc; \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
     docker-php-ext-install -j$(nproc) \
       bcmath \
@@ -70,10 +69,3 @@ WORKDIR /var/www/html
 
 # Копируем crontab файл (как в iec-exchange-backend)
 COPY docker/php/crontabs/* /etc/crontabs/
-
-# Копируем и настраиваем entrypoint скрипт для создания директорий
-COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["php-fpm"]
