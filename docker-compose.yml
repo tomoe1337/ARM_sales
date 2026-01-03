@@ -37,8 +37,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./laravel:/var/www/html
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
+      HOST_USER_ID: "${UID:-1000}"
+      HOST_GROUP_ID: "${GID:-1000}"
       # Database
       DB_CONNECTION: pgsql
       DB_HOST: postgres
@@ -88,8 +89,9 @@ services:
     command: php /var/www/html/artisan queue:work database --queue=default --tries=3 --timeout=900 --sleep=3
     volumes:
       - ./laravel:/var/www/html
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
+      HOST_USER_ID: "${UID:-1000}"
+      HOST_GROUP_ID: "${GID:-1000}"
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
