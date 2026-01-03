@@ -32,7 +32,8 @@ RUN set -eux; \
       git \
       wget \
       dcron \
-      dcron-openrc; \
+      dcron-openrc \
+      su-exec; \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
     docker-php-ext-install -j$(nproc) \
       bcmath \
