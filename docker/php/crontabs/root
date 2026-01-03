@@ -1,0 +1,3 @@
+# Логи будут выводиться в docker (stdout)
+* * * * * /usr/local/bin/php /var/www/html/artisan schedule:run
+

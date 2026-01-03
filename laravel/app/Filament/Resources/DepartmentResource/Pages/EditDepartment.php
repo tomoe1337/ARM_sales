@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\DepartmentResource\Pages;
 
 use App\Filament\Resources\DepartmentResource;
+use App\Models\DepartmentBluesalesCredential;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class EditDepartment extends EditRecord
 {
@@ -17,12 +19,68 @@ class EditDepartment extends EditRecord
         ];
     }
 
-    protected function getRedirectUrl(): string
+    protected function mutateFormDataBeforeFill(array $data): array
     {
-        return $this->getResource()::getUrl('index');
+        // Загружаем данные кредов BlueSales при открытии формы
+        $department = $this->record;
+        if ($department && $department->bluesalesCredential) {
+            $credential = $department->bluesalesCredential;
+            $data['bluesales_credential'] = [
+                'login' => $credential->login,
+                'api_key' => '', // Не показываем зашифрованный ключ
+                'sync_enabled' => $credential->sync_enabled,
+            ];
+        }
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Извлекаем данные кредов BlueSales
+        $bluesalesData = $data['bluesales_credential'] ?? null;
+        unset($data['bluesales_credential']);
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        $department = $this->record;
+        $bluesalesData = $this->form->getState()['bluesales_credential'] ?? null;
+
+        if ($bluesalesData !== null) {
+            // Обновляем или создаем креды
+            $credential = $department->bluesalesCredential;
+
+            if ($credential) {
+                // Обновляем существующие креды
+                $updateData = [
+                    'sync_enabled' => $bluesalesData['sync_enabled'] ?? false,
+                ];
+
+                // Обновляем login только если он указан
+                if (!empty($bluesalesData['login'])) {
+                    $updateData['login'] = $bluesalesData['login'];
+                }
+
+                // Обновляем API ключ только если он указан (не пустой)
+                if (isset($bluesalesData['api_key']) && !empty($bluesalesData['api_key'])) {
+                    $updateData['api_key'] = $bluesalesData['api_key'];
+                }
+
+                $credential->update($updateData);
+            } else {
+                // Создаем новые креды
+                $createData = [
+                    'department_id' => $department->id,
+                    'login' => $bluesalesData['login'] ?? '',
+                    'api_key' => $bluesalesData['api_key'] ?? '',
+                    'sync_enabled' => $bluesalesData['sync_enabled'] ?? false,
+                ];
+
+                DepartmentBluesalesCredential::create($createData);
+            }
+        }
     }
 }
-
-
-
-

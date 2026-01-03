@@ -69,4 +69,84 @@ class OrderTransformer
         // Пока просто возвращаем 1, можно будет доработать поиск по email
         return 1;
     }
+
+    public static function toBlueSalesData(\App\Models\Order $order): array
+    {
+        // Проверяем, что у заказа есть клиент с bluesales_id
+        if (!$order->client || !$order->client->bluesales_id) {
+            throw new \Exception('Заказ не может быть синхронизирован: у клиента отсутствует bluesales_id');
+        }
+
+        $mapping = [
+            'customer' => [
+                'id' => (int) $order->client->bluesales_id
+            ],
+            'orderStatus' => [
+                'name' => self::mapStatusToBlueSales($order->status)
+            ],
+        ];
+
+        // Менеджер
+        if ($order->user?->email) {
+            $mapping['manager'] = [
+                'login' => $order->user->email
+            ];
+        }
+
+        // Комментарии менеджера
+        if ($order->internal_comments) {
+            $mapping['internalComments'] = $order->internal_comments;
+        }
+
+        // Позиции заказа (goodsPositions)
+        $goodsPositions = [];
+        foreach ($order->orderItems as $item) {
+            $position = [
+                'goods' => [],
+                'price' => (float) $item->price,
+                'quantity' => (int) $item->quantity,
+            ];
+
+            // Товар можно указать по name, marking или id
+            if ($item->product_name) {
+                $position['goods']['name'] = $item->product_name;
+            } elseif ($item->product_marking) {
+                $position['goods']['marking'] = $item->product_marking;
+            } elseif ($item->product_bluesales_id) {
+                $position['goods']['id'] = (int) $item->product_bluesales_id;
+            } else {
+                // Если нет ни одного идентификатора, используем название
+                $position['goods']['name'] = $item->product_name ?? 'Товар без названия';
+            }
+
+            $goodsPositions[] = $position;
+        }
+
+        // Если нет позиций, добавляем пустую позицию (API может требовать хотя бы одну)
+        if (empty($goodsPositions)) {
+            $goodsPositions[] = [
+                'goods' => ['name' => ''],
+                'price' => 0,
+                'quantity' => 1,
+            ];
+        }
+
+        $mapping['goodsPositions'] = $goodsPositions;
+
+        return $mapping;
+    }
+
+    private static function mapStatusToBlueSales(string $status): string
+    {
+        $statusMap = [
+            'new' => 'Новый',
+            'reserve' => 'Резерв',
+            'preorder' => 'Предзаказ',
+            'shipped' => 'Передан на отправку',
+            'delivered' => 'Доставлен',
+            'cancelled' => 'Отменен',
+        ];
+
+        return $statusMap[$status] ?? 'Новый';
+    }
 }

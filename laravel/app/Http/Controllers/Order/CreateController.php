@@ -21,7 +21,10 @@ class CreateController extends Controller
             $selectedClient = Client::find($selectedClientId);
         }
 
-        $clients = Client::where('user_id', Auth::id())->get();
+        // Получаем клиентов с bluesales_id согласно OrganizationScope
+        // OrganizationScope автоматически применит фильтрацию по департаменту/организации
+        $clients = Client::whereNotNull('bluesales_id')->get();
+        
         // Получаем пользователей только из своего отдела
         $users = User::where('department_id', Auth::user()->department_id)->get();
 

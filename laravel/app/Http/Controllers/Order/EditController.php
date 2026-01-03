@@ -16,10 +16,12 @@ class EditController extends Controller
 
         abort_unless($order->canEdit($user), 403, 'У вас нет прав для редактирования этого заказа');
 
-        $clients = Client::where('user_id', auth()->id())->get();
+        // Загружаем товары заказа
+        $order->load('orderItems');
+        
         // Получаем пользователей только из своего отдела
         $users = User::where('department_id', Auth::user()->department_id)->get();
 
-        return view('orders.edit', compact('order', 'clients', 'users'));
+        return view('orders.edit', compact('order', 'users'));
     }
 }

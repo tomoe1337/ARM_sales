@@ -24,6 +24,6 @@ class DestroyController extends Controller
         $this->clientService->deleteClient($client);
 
         return redirect()->route('clients.index')
-            ->with('success', 'Client deleted successfully.'); // Пример сообщения об успехе
+            ->with('success', 'Клиент успешно удален');
     }
 }

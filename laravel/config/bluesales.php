@@ -6,3 +6,4 @@ return [
     'sync_enabled' => env('BLUESALES_SYNC_ENABLED', false),
 ];
 
+

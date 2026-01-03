@@ -34,9 +34,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('deals.index') }}">Сделки</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('orders.index') }}">Заказы</a>
                     </li>
                     <li class="nav-item">

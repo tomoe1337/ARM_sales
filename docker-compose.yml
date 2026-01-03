@@ -51,6 +51,33 @@ services:
     networks:
       - arm_network
 
+  # Scheduler (cron для Laravel schedule)
+  php-cron:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: arm_php_cron
+    restart: unless-stopped
+    command: ['crond', '-f', '-l', '2']
+    init: true
+    volumes:
+      - ./laravel:/var/www/html
+    user: "root:root"
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: arm_sales
+      DB_USERNAME: arm_user
+      DB_PASSWORD: arm_password_2024
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - arm_network
+    profiles:
+      - workers
+
   # Queue Worker
   queue-worker:
     build:
@@ -58,7 +85,7 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: arm_default_queue_worker
     restart: unless-stopped
-    command: php /var/www/html/artisan queue:work database --queue=default --tries=3 --timeout=300 --sleep=3
+    command: php /var/www/html/artisan queue:work database --queue=default --tries=3 --timeout=900 --sleep=3
     volumes:
       - ./laravel:/var/www/html
     user: "${UID:-1000}:${GID:-1000}"

@@ -48,6 +48,31 @@ class Department extends Model
     }
 
     /**
+     * Связь с кредами BlueSales
+     */
+    public function bluesalesCredential(): HasOne
+    {
+        return $this->hasOne(DepartmentBluesalesCredential::class);
+    }
+
+    /**
+     * Получить креды BlueSales для отдела
+     */
+    public function getBluesalesCredential(): ?DepartmentBluesalesCredential
+    {
+        return $this->bluesalesCredential;
+    }
+
+    /**
+     * Проверить, настроена ли синхронизация с BlueSales
+     */
+    public function hasBluesalesSync(): bool
+    {
+        $credential = $this->bluesalesCredential;
+        return $credential && $credential->isReadyForSync();
+    }
+
+    /**
      * Получить активную подписку отдела
      * Активная подписка - та, которая уже началась (starts_at <= now) и еще не истекла (ends_at > now)
      */

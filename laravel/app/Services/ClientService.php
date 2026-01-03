@@ -3,97 +3,80 @@
 namespace App\Services;
 
 use App\Models\Client;
+use App\Models\Department;
 use App\Models\User;
 use App\Services\BlueSales\BlueSalesApiService;
 use App\Services\BlueSales\Transformers\CustomerTransformer;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ClientService
 {
     /**
-     * Create a new client.
+     * Создать клиента с синхронизацией в BlueSales
      *
-     * @param array $data The data for the new client.
-     * @return Client The created client object.
+     * @param array $data Данные клиента
+     * @return Client Созданный клиент
      * @throws \Exception If BlueSales synchronization fails.
      */
     public function createClient(array $data): Client
     {
-        // Получаем пользователя для заполнения полей
-        $user = null;
-        if (isset($data['user_id'])) {
-            $user = User::find($data['user_id']);
-        } elseif (Auth::check()) {
-            $user = Auth::user();
-            $data['user_id'] = $user->id; // Заполняем user_id текущим пользователем
-        }
-        
-        // Если organization_id и department_id не указаны, берем из пользователя
-        if ($user && (!isset($data['organization_id']) || !isset($data['department_id']))) {
-            $data['organization_id'] = $data['organization_id'] ?? $user->organization_id;
-            $data['department_id'] = $data['department_id'] ?? $user->department_id;
-        }
-        
-        // Синхронизация выполняется ДО создания в транзакции
         return DB::transaction(function () use ($data) {
-            // 1. Проверяем, включена ли синхронизация
-            $syncEnabled = config('bluesales.sync_enabled') 
-                && config('bluesales.login') 
-                && config('bluesales.api_key');
-            
-            if ($syncEnabled) {
-                // 2. Сначала синхронизируем с BlueSales
-                $bluesalesId = $this->syncToBlueSalesBeforeCreate($data);
-                
-                // 3. Если синхронизация не удалась - выбрасываем исключение, транзакция откатится
-                if ($bluesalesId === null) {
-                    throw new \Exception('Не удалось создать клиента в BlueSales. Проверьте логи для деталей.');
+            // Получаем отдел из данных или из текущего пользователя
+            $departmentId = $data['department_id'] ?? auth()->user()?->department_id;
+            $department = $departmentId ? Department::find($departmentId) : null;
+
+            // Проверяем, есть ли креды BlueSales для отдела
+            $syncEnabled = false;
+            $bluesalesId = null;
+
+            if ($department && $department->hasBluesalesSync()) {
+                $credential = $department->bluesalesCredential;
+                $syncEnabled = $credential->sync_enabled && $credential->isReadyForSync();
+
+                if ($syncEnabled) {
+                    $bluesalesId = $this->syncToBlueSalesBeforeCreate($data, $credential);
+                    if ($bluesalesId) {
+                        $data['bluesales_id'] = $bluesalesId;
+                        $data['bluesales_last_sync'] = now();
+                    }
                 }
-                
-                // 4. Сохраняем bluesales_id в данных перед созданием
-                $data['bluesales_id'] = $bluesalesId;
-                $data['bluesales_last_sync'] = now();
             }
-            
-            // 5. Только после успешной синхронизации (или если она отключена) создаём клиента в нашей БД
-            $client = Client::create($data);
-            
-            Log::info('Client created successfully', [
+
+            // Убеждаемся, что organization_id и department_id установлены
+            if (!isset($data['organization_id'])) {
+                $data['organization_id'] = auth()->user()?->organization_id;
+            }
+            if (!isset($data['department_id'])) {
+                $data['department_id'] = auth()->user()?->department_id;
+        }
+        
+        $client = Client::create($data);
+        
+            Log::info('Client created', [
                 'client_id' => $client->id,
-                'bluesales_id' => $client->bluesales_id,
+                'bluesales_id' => $bluesalesId,
                 'sync_enabled' => $syncEnabled
             ]);
-            
-            return $client;
+        
+        return $client;
         });
     }
     
     /**
-     * Синхронизация с BlueSales ДО создания клиента.
-     * 
-     * @param array $data Данные клиента для синхронизации
-     * @return string|null ID клиента в BlueSales или null при ошибке
+     * Синхронизация с BlueSales перед созданием (новый метод с кредами отдела)
      */
-    private function syncToBlueSalesBeforeCreate(array $data): ?string
+    private function syncToBlueSalesBeforeCreate(array $data, $credential): ?string
     {
-        // Проверяем, включена ли синхронизация
-        if (!config('bluesales.sync_enabled') || !config('bluesales.login') || !config('bluesales.api_key')) {
-            Log::info('BlueSales sync skipped - not enabled or credentials missing', [
-                'sync_enabled' => config('bluesales.sync_enabled'),
-                'has_login' => !empty(config('bluesales.login')),
-                'has_api_key' => !empty(config('bluesales.api_key'))
-            ]);
-            return null;
-        }
-        
         try {
-            Log::info('Starting BlueSales sync before client creation', ['data' => $data]);
+            Log::info('Starting BlueSales sync before client creation (department credentials)', [
+                'department_id' => $credential->department_id,
+                'data' => $data
+            ]);
             
             $apiService = new BlueSalesApiService(
-                config('bluesales.login'),
-                config('bluesales.api_key')
+                $credential->login,
+                $credential->getDecryptedApiKey()
             );
             
             // Создаем временный объект Client для трансформера
@@ -110,98 +93,155 @@ class ClientService
             // Создаем клиента в BlueSales
             $bluesalesId = $apiService->createCustomer($bluesalesData);
             
-            if ($bluesalesId) {
+                if ($bluesalesId) {
                 Log::info('BlueSales customer created successfully', [
-                    'bluesales_id' => $bluesalesId,
-                    'client_data' => $data
+                        'bluesales_id' => $bluesalesId,
+                    'client_data' => $data,
+                    'department_id' => $credential->department_id
                 ]);
                 return $bluesalesId;
             }
             
             Log::error('BlueSales customer creation returned null', [
-                'client_data' => $data,
-                'bluesales_data' => $bluesalesData
-            ]);
-            
-            return null;
-        } catch (\Exception $e) {
-            Log::error('Failed to sync client to BlueSales before creation', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'department_id' => $credential->department_id,
                 'client_data' => $data
             ]);
             
-            return null;
+            throw new \Exception('Не удалось создать клиента в BlueSales. Проверьте логи для деталей.');
+        } catch (\Exception $e) {
+            Log::error('BlueSales sync error before client creation', [
+                'department_id' => $credential->department_id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            throw $e;
         }
     }
-    
+
+
     /**
-     * Синхронизация с BlueSales для существующего клиента (при обновлении).
+     * Обновить клиента с синхронизацией в BlueSales
      */
-    private function syncToBlueSales(Client $client): void
+    public function updateClient(Client $client, array $data): Client
     {
-        if (!config('bluesales.sync_enabled') || !config('bluesales.login') || !config('bluesales.api_key')) {
-            return;
-        }
-        
-        try {
-            $apiService = new BlueSalesApiService(
-                config('bluesales.login'),
-                config('bluesales.api_key')
-            );
+        return DB::transaction(function () use ($client, $data) {
+            // Получаем отдел клиента
+            $department = $client->department;
             
-            // При обновлении передаем manager
-            $data = CustomerTransformer::toBlueSalesData($client, true);
+            // Проверяем, есть ли креды BlueSales для отдела
+            $syncEnabled = false;
             
-            if ($client->bluesales_id) {
-                // Обновление существующего
-                $success = $apiService->updateCustomer($client->bluesales_id, $data);
-                if ($success) {
-                    $client->updateQuietly(['bluesales_last_sync' => now()]);
-                }
-            } else {
-                // Создание нового (для случаев, когда клиент был создан без синхронизации)
-                $bluesalesId = $apiService->createCustomer($data);
-                if ($bluesalesId) {
-                    $client->updateQuietly([
-                        'bluesales_id' => $bluesalesId,
-                        'bluesales_last_sync' => now()
-                    ]);
+            if ($department && $department->hasBluesalesSync()) {
+                $credential = $department->bluesalesCredential;
+                $syncEnabled = $credential->sync_enabled && $credential->isReadyForSync();
+
+                if ($syncEnabled && $client->bluesales_id) {
+                    $this->syncToBlueSales($client, $credential);
+                    $data['bluesales_last_sync'] = now();
                 }
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to sync client to BlueSales', [
+
+        $client->update($data);
+        
+            Log::info('Client updated', [
                 'client_id' => $client->id,
-                'error' => $e->getMessage()
+                'bluesales_id' => $client->bluesales_id,
+                'sync_enabled' => $syncEnabled
+            ]);
+        
+        return $client;
+        });
+    }
+
+    /**
+     * Синхронизация с BlueSales при обновлении (новый метод)
+     */
+    private function syncToBlueSales(Client $client, $credential): void
+    {
+        if (!$client->bluesales_id) {
+            Log::info('Skipping BlueSales sync - client has no bluesales_id');
+            return;
+        }
+
+        try {
+            Log::info('Starting BlueSales sync for client update (department credentials)', [
+                'client_id' => $client->id,
+                'bluesales_id' => $client->bluesales_id,
+                'department_id' => $credential->department_id
+            ]);
+
+            $apiService = new BlueSalesApiService(
+                $credential->login,
+                $credential->getDecryptedApiKey()
+            );
+
+            $bluesalesData = CustomerTransformer::toBlueSalesData($client, true);
+            
+            $success = $apiService->updateCustomer($client->bluesales_id, $bluesalesData);
+            
+            if ($success) {
+                Log::info('BlueSales customer updated successfully', [
+                    'client_id' => $client->id,
+                    'bluesales_id' => $client->bluesales_id,
+                    'department_id' => $credential->department_id
+                ]);
+                $client->updateQuietly(['bluesales_last_sync' => now()]);
+            } else {
+                Log::error('BlueSales customer update failed', [
+                    'client_id' => $client->id,
+                    'bluesales_id' => $client->bluesales_id,
+                    'department_id' => $credential->department_id
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('BlueSales sync error for client update', [
+                'client_id' => $client->id,
+                'bluesales_id' => $client->bluesales_id,
+                'department_id' => $credential->department_id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
 
-    /**
-     * Update an existing client.
-     *
-     * @param Client $client The client to update.
-     * @param array $data The data to update the client with.
-     * @return Client The updated client object.
-     */
-    public function updateClient(Client $client, array $data): Client
-    {
-        $client->update($data);
-        
-        // Синхронизация с BlueSales
-        $this->syncToBlueSales($client);
-        
-        return $client;
-    }
 
     /**
-     * Delete a client.
-     *
-     * @param Client $client The client to delete.
-     * @return bool True if the client was deleted, false otherwise.
+     * Удалить клиента
+     * 
+     * @param Client $client Клиент для удаления
+     * @return bool
      */
     public function deleteClient(Client $client): bool
     {
-        return $client->delete();
+        return DB::transaction(function () use ($client) {
+            // Сохраняем данные перед удалением
+            $clientId = $client->id;
+            $bluesalesId = $client->bluesales_id;
+            $department = $client->department;
+            $departmentId = $department?->id;
+
+            // Удаляем клиента из БД
+            $deleted = $client->delete();
+
+            if ($deleted) {
+                if ($bluesalesId && $department && $department->hasBluesalesSync()) {
+                    // Пытаемся удалить из BlueSales (если API поддерживает)
+                    // Пока просто логируем, так как в BlueSales API нет метода удаления
+                    Log::info('Client deleted (BlueSales sync not implemented for deletion)', [
+                        'client_id' => $clientId,
+                        'bluesales_id' => $bluesalesId,
+                        'department_id' => $departmentId
+                    ]);
+                }
+
+                Log::info('Client deleted', [
+                    'client_id' => $clientId,
+                    'bluesales_id' => $bluesalesId
+                ]);
+            }
+
+            return $deleted;
+        });
     }
 }

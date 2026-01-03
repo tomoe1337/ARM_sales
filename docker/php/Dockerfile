@@ -22,7 +22,9 @@ RUN set -eux; \
       g++ \
       make \
       git \
-      wget; \
+      wget \
+      dcron \
+      dcron-openrc; \
     docker-php-ext-configure gd --with-freetype --with-jpeg; \
     docker-php-ext-install -j$(nproc) \
       bcmath \
@@ -57,4 +59,5 @@ RUN { \
 
 WORKDIR /var/www/html
 
-CMD ["php-fpm"]
+# Копируем crontab файл (как в iec-exchange-backend)
+COPY docker/php/crontabs/* /etc/crontabs/

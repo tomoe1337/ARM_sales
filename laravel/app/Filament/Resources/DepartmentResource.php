@@ -69,6 +69,38 @@ class DepartmentResource extends Resource
                             ->label('Активен')
                             ->default(true),
                     ]),
+                
+                Forms\Components\Section::make('Настройки BlueSales')
+                    ->description('Настройте автоматическую синхронизацию с BlueSales для этого отдела. Синхронизация выполняется автоматически каждые 5 минут.')
+                    ->schema([
+                        Forms\Components\Toggle::make('bluesales_credential.sync_enabled')
+                            ->label('Включить автоматическую синхронизацию')
+                            ->default(true)
+                            ->helperText('При включении синхронизация будет выполняться автоматически каждые 5 минут')
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\TextInput::make('bluesales_credential.login')
+                            ->label('Email для входа в BlueSales')
+                            ->email()
+                            ->maxLength(255)
+                            ->placeholder('example@mail.ru')
+                            ->helperText('Email, который используется для входа в BlueSales')
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\TextInput::make('bluesales_credential.api_key')
+                            ->label('API ключ BlueSales')
+                            ->password()
+                            ->maxLength(255)
+                            ->helperText('API ключ можно получить в настройках вашего аккаунта BlueSales')
+                            ->placeholder(function ($record) {
+                                $hasKey = $record?->bluesalesCredential?->api_key ?? false;
+                                return $hasKey ? '•••••••• (ключ уже сохранен, введите новый для изменения)' : 'Введите API ключ';
+                            })
+                            ->revealable()
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -154,4 +186,3 @@ class DepartmentResource extends Resource
         return auth()->check() && auth()->user()->organization_id !== null;
     }
 }
-

@@ -18,11 +18,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('deals.index') }}">
-                            <i class="fas fa-handshake"></i> Сделки
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('orders.index') }}">
                             <i class="fas fa-shopping-cart"></i> Заказы
                         </a>
