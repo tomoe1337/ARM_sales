@@ -21,15 +21,20 @@ class UserOrganizationScope implements Scope
 
         $user = auth()->user();
         
+        $table = $model->getTable();
+        
+        // Super admin видит всех пользователей (не применяем фильтр)
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+        
         // Не применяем scope если у пользователя нет organization_id
         if (!$user || !$user->organization_id) {
             return;
         }
-
-        $table = $model->getTable();
         
-        // Супер-админ организации видит всех пользователей своей организации
-        if ($user->isOrganizationAdmin()) {
+        // Владелец организации видит всех пользователей своей организации
+        if ($user->isOrganizationOwner()) {
             $builder->where($table . '.organization_id', $user->organization_id);
         }
         // Руководитель отдела видит всех пользователей своего отдела

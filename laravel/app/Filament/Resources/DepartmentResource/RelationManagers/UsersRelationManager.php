@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\DepartmentResource\RelationManagers;
 
-use App\Enums\UserRolesEnum;
 use Filament\Forms;
+use Spatie\Permission\Models\Role;
+use App\Models\User;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -57,13 +58,23 @@ class UsersRelationManager extends RelationManager
                         
                         Forms\Components\Select::make('role')
                             ->label('Роль')
-                            ->options([
-                                UserRolesEnum::MANAGER->value => 'Менеджер',
-                                UserRolesEnum::HEAD->value => 'Руководитель отдела',
-                            ])
-                            ->default(UserRolesEnum::MANAGER->value)
+                            ->options(function () {
+                                return Role::whereIn('name', ['manager', 'head'])
+                                    ->pluck('name', 'name')
+                                    ->map(fn($name) => match($name) {
+                                        'head' => 'Руководитель отдела',
+                                        'manager' => 'Менеджер',
+                                        default => $name,
+                                    });
+                            })
+                            ->default('manager')
                             ->required()
-                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                            ->disabled(fn ($record) => $record && $record->id === auth()->id())
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($record && $state) {
+                                    $record->syncRoles([$state]);
+                                }
+                            }),
                         
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активен')
@@ -115,10 +126,15 @@ class UsersRelationManager extends RelationManager
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
                     ->label('Роль')
-                    ->options([
-                        UserRolesEnum::MANAGER->value => 'Менеджер',
-                        UserRolesEnum::HEAD->value => 'Руководитель',
-                    ]),
+                    ->options(function () {
+                        return Role::whereIn('name', ['manager', 'head'])
+                            ->pluck('name', 'name')
+                            ->map(fn($name) => match($name) {
+                                'head' => 'Руководитель',
+                                'manager' => 'Менеджер',
+                                default => $name,
+                            });
+                    }),
                 
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Активен')
@@ -129,17 +145,28 @@ class UsersRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->label('Добавить менеджера')
-                    ->mutateFormDataUsing(function (array $data): array {
+                    ->using(function (array $data) {
                         $department = $this->getOwnerRecord();
                         
                         // Автоматически привязываем к организации и отделу
                         $data['organization_id'] = $department->organization_id;
                         $data['department_id'] = $department->id;
                         
-                        // По умолчанию создаем менеджера
-                        if (!isset($data['role'])) {
-                            $data['role'] = UserRolesEnum::MANAGER->value;
-                        }
+                        // Создаем пользователя
+                        $user = User::create($data);
+                        
+                        // Назначаем роль через Spatie
+                        $role = $data['role'] ?? 'manager';
+                        $user->assignRole($role);
+                        
+                        return $user;
+                    })
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $department = $this->getOwnerRecord();
+                        
+                        // Автоматически привязываем к организации и отделу
+                        $data['organization_id'] = $department->organization_id;
+                        $data['department_id'] = $department->id;
                         
                         // Проверяем лимит активных пользователей, если активируем
                         if (($data['is_active'] ?? false)) {
@@ -198,6 +225,12 @@ class UsersRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+                    ->after(function ($record, array $data) {
+                        // Синхронизируем роль через Spatie после обновления
+                        if (isset($data['role'])) {
+                            $record->syncRoles([$data['role']]);
+                        }
+                    })
                     ->mutateFormDataUsing(function (array $data, $record): array {
                         // Проверяем лимит активных пользователей, если активируем (меняем с false на true)
                         if (($data['is_active'] ?? false) && !$record->is_active) {

@@ -63,6 +63,9 @@ class DepartmentBluesalesCredential extends Model
     {
         if (!empty($value)) {
             $this->attributes['api_key'] = Crypt::encryptString($value);
+        } else {
+            // Явно устанавливаем null для пустых значений
+            $this->attributes['api_key'] = null;
         }
     }
 

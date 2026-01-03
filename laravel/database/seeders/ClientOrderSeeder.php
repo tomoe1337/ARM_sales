@@ -22,7 +22,7 @@ class ClientOrderSeeder extends Seeder
         $faker = Faker::create('ru_RU');
         
         // Получаем всех пользователей с ролью manager или head
-        $users = User::whereIn('role', ['manager', 'head'])->get();
+        $users = User::role(['manager', 'head'])->get();
         
         if ($users->isEmpty()) {
             $this->command->warn('Нет пользователей с ролью manager или head. Создайте пользователей сначала.');

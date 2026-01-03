@@ -21,8 +21,13 @@ class OrganizationScope implements Scope
         $user = auth()->user();
         $table = $model->getTable();
         
-        // Супер-админ организации видит все отделы своей организации
-        if ($user->isOrganizationAdmin()) {
+        // Super admin видит все данные (не применяем фильтр)
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+        
+        // Владелец организации видит все отделы своей организации
+        if ($user->isOrganizationOwner()) {
             $builder->where($table . '.organization_id', $user->organization_id);
         }
         // Руководитель отдела видит только свой отдел

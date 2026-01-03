@@ -22,6 +22,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Создаем роли (должно быть первым)
+        $this->call([
+            RoleSeeder::class,
+        ]);
+        
         // Создаем тарифный план
         $this->call([
             SubscriptionPlanSeeder::class,
@@ -63,25 +68,34 @@ class DatabaseSeeder extends Seeder
                     'name' => 'Иван',
                     'full_name' => 'Иванов',
                     'password' => Hash::make('password'),
-                    'role' => 'head',
+                    // 'role' => 'head',  // ❌ УБРАНО - используем только Spatie
                     'organization_id' => $organization->id,
                     'department_id' => $department->id,
                     'is_active' => true,
                 ]
             );
+            // Назначаем роль через Spatie
+            if (!$manager->hasRole('head')) {
+                $manager->assignRole('head');
+            }
 
 #todo: Оставить только для тест окружения
-            // Создаем админа (без организации и департамента)
-            User::firstOrCreate(
+            // Создаем владельца организации (без департамента)
+            $admin = User::firstOrCreate(
                 ['email' => 'admin@mail.com'],
                 [
                     'name' => 'Иван',
                     'full_name' => 'Иванов',
                     'password' => Hash::make('admin'),
-                    'role' => 'admin',
+                    // 'role' => 'admin',  // ❌ УБРАНО - используем только Spatie
+                    'organization_id' => $organization->id,
                     'is_active' => true,
                 ]
             );
+            // Назначаем роль через Spatie
+            if (!$admin->hasRole('organization_owner')) {
+                $admin->assignRole('organization_owner');
+            }
 
             // Создаем пользователей (менеджеров) в организации и департаменте
             $users = collect([$manager]); // добавляем менеджера в коллекцию
@@ -93,12 +107,16 @@ class DatabaseSeeder extends Seeder
                         'name' => 'Сотрудник ',
                         'full_name' => $i,
                         'password' => Hash::make('password'),
-                        'role' => 'manager',
+                        // 'role' => 'manager',  // ❌ УБРАНО - используем только Spatie
                         'organization_id' => $organization->id,
                         'department_id' => $department->id,
                         'is_active' => true,
                     ]
                 );
+                // Назначаем роль через Spatie
+                if (!$user->hasRole('manager')) {
+                    $user->assignRole('manager');
+                }
                 $users->push($user);
             }
         });

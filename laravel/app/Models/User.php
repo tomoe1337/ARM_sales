@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\UserRolesEnum;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Panel;
@@ -13,11 +12,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -29,7 +29,7 @@ class User extends Authenticatable implements FilamentUser
         'full_name',
         'email',
         'password',
-        'role',
+        // 'role', // ❌ УБРАНО - используем только Spatie Permission
         'status',
         'monthly_plan',
         'daily_plan',
@@ -62,6 +62,16 @@ class User extends Authenticatable implements FilamentUser
         'activated_at' => 'datetime',
     ];
 
+    /**
+     * Accessor для обратной совместимости (read-only)
+     * Возвращает роль из Spatie, если поле role еще существует в БД
+     */
+    public function getRoleAttribute($value)
+    {
+        $role = $this->roles()->first();
+        return $role ? $role->name : $value;
+    }
+
     // Связи с мультитенантностью
     public function organization(): BelongsTo
     {
@@ -78,21 +88,35 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(WorkSession::class);
     }
 
-    public function isManager(): bool
+    public function isSuperAdmin(): bool
     {
-        return $this->role === UserRolesEnum::MANAGER->value;
+        return $this->hasRole('super_admin') && $this->organization_id === null;
+    }
+
+    public function isOrganizationOwner(): bool
+    {
+        return $this->hasRole('organization_owner') 
+            && $this->organization_id !== null 
+            && $this->department_id === null;
     }
 
     public function isHead(): bool
     {
-        return $this->role === UserRolesEnum::HEAD->value 
+        return $this->hasRole('head') 
             && $this->department_id !== null;
     }
 
+    public function isManager(): bool
+    {
+        return $this->hasRole('manager');
+    }
+
+    /**
+     * @deprecated Используйте isOrganizationOwner()
+     */
     public function isOrganizationAdmin(): bool
     {
-        return $this->role === UserRolesEnum::ADMIN->value 
-            && $this->department_id === null; // Супер-админ без привязки к отделу
+        return $this->isOrganizationOwner();
     }
 
     // Проверка принадлежности к отделу
@@ -163,12 +187,8 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Доступ имеют: админы, руководители отделов и менеджеры
-        return in_array($this->role, [
-            UserRolesEnum::ADMIN->value,
-            UserRolesEnum::HEAD->value,
-            UserRolesEnum::MANAGER->value,
-        ]);
+        // Доступ имеют: super_admin, organization_owner, руководители отделов
+        return $this->hasAnyRole(['super_admin', 'organization_owner', 'head']);
     }
 
     /**
@@ -198,7 +218,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function scopeManagers(Builder $query): Builder
     {
-        return $query->where('role', UserRolesEnum::MANAGER->value);
+        return $query->role('manager');
     }
 
     /**
@@ -217,8 +237,13 @@ class User extends Authenticatable implements FilamentUser
             return $query;
         }
 
-        // Супер-админ организации видит всех пользователей своей организации
-        if ($user->isOrganizationAdmin()) {
+        // Super admin видит всех пользователей
+        if ($user->isSuperAdmin()) {
+            return $query;
+        }
+        
+        // Владелец организации видит всех пользователей своей организации
+        if ($user->isOrganizationOwner()) {
             return $query->where('organization_id', $user->organization_id);
         }
         

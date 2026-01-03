@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\UserRolesEnum;
 use App\Filament\Resources\UserResource\Pages;
+use Spatie\Permission\Models\Role;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
@@ -67,13 +67,24 @@ class UserResource extends Resource
                         
                         Forms\Components\Select::make('role')
                             ->label('Роль')
-                            ->options([
-                                UserRolesEnum::MANAGER->value => 'Менеджер',
-                                UserRolesEnum::HEAD->value => 'Руководитель отдела',
-                            ])
-                            ->default(UserRolesEnum::MANAGER->value)
+                            ->options(function () {
+                                return Role::whereIn('name', ['manager', 'head', 'organization_owner'])
+                                    ->pluck('name', 'name')
+                                    ->map(fn($name) => match($name) {
+                                        'organization_owner' => 'Владелец организации',
+                                        'head' => 'Руководитель отдела',
+                                        'manager' => 'Менеджер',
+                                        default => $name,
+                                    });
+                            })
+                            ->default('manager')
                             ->required()
-                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                            ->disabled(fn ($record) => $record && $record->id === auth()->id())
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($record && $state) {
+                                    $record->syncRoles([$state]);
+                                }
+                            }),
                         
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активен')
@@ -106,11 +117,15 @@ class UserResource extends Resource
                     ->label('Роль')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        'super_admin' => 'danger',
+                        'organization_owner' => 'warning',
                         'head' => 'success',
                         'manager' => 'info',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'super_admin' => 'Супер-админ',
+                        'organization_owner' => 'Владелец',
                         'head' => 'Руководитель',
                         'manager' => 'Менеджер',
                         default => $state,
@@ -130,10 +145,16 @@ class UserResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
                     ->label('Роль')
-                    ->options([
-                        UserRolesEnum::MANAGER->value => 'Менеджер',
-                        UserRolesEnum::HEAD->value => 'Руководитель',
-                    ]),
+                    ->options(function () {
+                        return Role::whereIn('name', ['manager', 'head', 'organization_owner'])
+                            ->pluck('name', 'name')
+                            ->map(fn($name) => match($name) {
+                                'organization_owner' => 'Владелец организации',
+                                'head' => 'Руководитель',
+                                'manager' => 'Менеджер',
+                                default => $name,
+                            });
+                    }),
                 
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Активен')
@@ -180,8 +201,16 @@ class UserResource extends Resource
         $query = parent::getEloquentQuery()
             ->where('organization_id', $user->organization_id);
         
+        // Super admin видит всех пользователей
+        if ($user->isSuperAdmin()) {
+            // Не применяем фильтр
+        }
+        // Владелец организации видит всех пользователей своей организации
+        elseif ($user->isOrganizationOwner()) {
+            // Фильтр уже применен выше
+        }
         // Руководитель видит всех пользователей своего отдела
-        if ($user->isHead()) {
+        elseif ($user->isHead()) {
             $query->where('department_id', $user->department_id);
         }
         

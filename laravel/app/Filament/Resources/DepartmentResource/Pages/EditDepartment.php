@@ -71,15 +71,18 @@ class EditDepartment extends EditRecord
 
                 $credential->update($updateData);
             } else {
-                // Создаем новые креды
-                $createData = [
-                    'department_id' => $department->id,
-                    'login' => $bluesalesData['login'] ?? '',
-                    'api_key' => $bluesalesData['api_key'] ?? '',
-                    'sync_enabled' => $bluesalesData['sync_enabled'] ?? false,
-                ];
+                // Создаем новые креды только если указан хотя бы login или api_key
+                // (api_key теперь может быть null, но валидация не даст включить sync_enabled без кредов)
+                if (!empty($bluesalesData['login']) || !empty($bluesalesData['api_key'])) {
+                    $createData = [
+                        'department_id' => $department->id,
+                        'login' => $bluesalesData['login'] ?? '',
+                        'api_key' => $bluesalesData['api_key'] ?? null,
+                        'sync_enabled' => $bluesalesData['sync_enabled'] ?? false,
+                    ];
 
-                DepartmentBluesalesCredential::create($createData);
+                    DepartmentBluesalesCredential::create($createData);
+                }
             }
         }
     }

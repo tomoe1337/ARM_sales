@@ -84,18 +84,20 @@ class DepartmentResource extends Resource
                             ->email()
                             ->maxLength(255)
                             ->placeholder('example@mail.ru')
-                            ->helperText('Email, который используется для входа в BlueSales')
+                            ->helperText('Email, который используется для входа в BlueSales. Обязателен, если включена синхронизация.')
+                            ->required(fn ($get) => $get('bluesales_credential.sync_enabled') === true)
                             ->columnSpanFull(),
                         
                         Forms\Components\TextInput::make('bluesales_credential.api_key')
                             ->label('API ключ BlueSales')
                             ->password()
                             ->maxLength(255)
-                            ->helperText('API ключ можно получить в настройках вашего аккаунта BlueSales')
+                            ->helperText('API ключ можно получить в настройках вашего аккаунта BlueSales. Обязателен, если включена синхронизация.')
                             ->placeholder(function ($record) {
                                 $hasKey = $record?->bluesalesCredential?->api_key ?? false;
                                 return $hasKey ? '•••••••• (ключ уже сохранен, введите новый для изменения)' : 'Введите API ключ';
                             })
+                            ->required(fn ($get) => $get('bluesales_credential.sync_enabled') === true)
                             ->revealable()
                             ->columnSpanFull(),
                     ])

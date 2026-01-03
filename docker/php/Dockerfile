@@ -1,5 +1,13 @@
 FROM php:8.4-fpm-alpine3.19
 
+ARG HOST_USER_ID
+ARG HOST_GROUP_ID
+
+# Создаем пользователя hostuser с ID хоста (как в iec-exchange-backend)
+RUN if [ -n "$HOST_USER_ID" ]; then \
+        adduser hostuser -u $HOST_USER_ID -D || true; \
+    fi
+
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_MEMORY_LIMIT=256M \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
@@ -61,3 +69,10 @@ WORKDIR /var/www/html
 
 # Копируем crontab файл (как в iec-exchange-backend)
 COPY docker/php/crontabs/* /etc/crontabs/
+
+# Копируем и настраиваем entrypoint скрипт для создания директорий
+COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php-fpm"]

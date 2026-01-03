@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
-use App\Enums\UserRolesEnum;
 use App\Filament\Resources\UserResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -19,10 +18,10 @@ class CreateUser extends CreateRecord
         $data['organization_id'] = $user->organization_id;
         $data['department_id'] = $user->department_id;
         
-        // По умолчанию создаем менеджера
-        if (!isset($data['role'])) {
-            $data['role'] = UserRolesEnum::MANAGER->value;
-        }
+        // Убираем прямое заполнение role - будет назначено через Spatie после создания
+        // if (!isset($data['role'])) {
+        //     $data['role'] = UserRolesEnum::MANAGER->value;  // ❌ УБРАНО
+        // }
         
         // Проверяем лимит активных пользователей, если активируем
         if (($data['is_active'] ?? false)) {
@@ -80,6 +79,13 @@ class CreateUser extends CreateRecord
         }
         
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        // Назначаем роль через Spatie после создания
+        $role = $this->form->getState()['role'] ?? 'manager';
+        $this->record->assignRole($role);
     }
 
     protected function getRedirectUrl(): string

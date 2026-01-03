@@ -35,7 +35,7 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
     public static function canAccess(): bool
     {
         $user = Auth::user();
-        return $user && ($user->isHead() || $user->isOrganizationAdmin());
+        return $user && ($user->isHead() || $user->isOrganizationOwner() || $user->isSuperAdmin());
     }
 
     public ?array $data = [];
@@ -803,7 +803,7 @@ class SubscriptionManagement extends Page implements HasForms, HasTable
     {
         $user = Auth::user();
         
-        if (!$user->isOrganizationAdmin() && !$user->isHead()) {
+        if (!$user->isOrganizationOwner() && !$user->isHead() && !$user->isSuperAdmin()) {
             Notification::make()
                 ->danger()
                 ->title('Доступ запрещен')

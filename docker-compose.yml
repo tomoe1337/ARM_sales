@@ -29,6 +29,9 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        HOST_USER_ID: "${UID:-1000}"
+        HOST_GROUP_ID: "${GID:-1000}"
     container_name: arm_php
     restart: unless-stopped
     volumes:
@@ -56,6 +59,9 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        HOST_USER_ID: "${UID:-1000}"
+        HOST_GROUP_ID: "${GID:-1000}"
     container_name: arm_php_cron
     restart: unless-stopped
     command: ['crond', '-f', '-l', '2']
@@ -83,6 +89,9 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        HOST_USER_ID: "${UID:-1000}"
+        HOST_GROUP_ID: "${GID:-1000}"
     container_name: arm_default_queue_worker
     restart: unless-stopped
     command: php /var/www/html/artisan queue:work database --queue=default --tries=3 --timeout=900 --sleep=3

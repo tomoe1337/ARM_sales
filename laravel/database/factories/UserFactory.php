@@ -30,7 +30,7 @@ class UserFactory extends Factory
             'full_name' => $lastName . ' ' . $firstName . ' ' . $patronymic,
             'email' => fake()->unique()->safeEmail(),
             'password' => Hash::make('password'),
-            'role' => 'manager',
+            // 'role' => 'manager',  // ❌ УБРАНО - используем только Spatie
             'avatar' => null,
         ];
     }
@@ -43,5 +43,16 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Configure the factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            // Назначаем роль через Spatie
+            $user->assignRole('manager');
+        });
     }
 }

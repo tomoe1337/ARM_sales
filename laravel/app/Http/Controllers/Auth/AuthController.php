@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Models\User;
 use App\Models\Organization;
 use App\Models\Department;
-use App\Enums\UserRolesEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +38,7 @@ class AuthController extends Controller
             $user = Auth::user();
             \Log::info('Login successful for user:', ['user' => $user->toArray()]);
 
-            if (in_array($user->role, ['manager', 'head'])) {
+            if ($user->hasAnyRole(['manager', 'head', 'organization_owner', 'super_admin'])) {
                 return redirect()->route('dashboard');
             }
         }
@@ -75,18 +74,21 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
-        // Создаем пользователя (руководитель отдела)
+        // Создаем пользователя (владелец организации)
         $user = User::create([
             'name' => $validated['name'],
             'full_name' => $validated['full_name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => UserRolesEnum::HEAD->value,
+            // 'role' => ..., // ❌ УБРАНО - используем только Spatie
             'organization_id' => $organization->id,
             'department_id' => $department->id,
             'is_active' => true,
             'activated_at' => now(),
         ]);
+
+        // Назначаем роль владельца организации через Spatie
+        $user->assignRole('organization_owner');
 
         // Загрузка аватара (если есть)
         if ($request->hasFile('avatar')) {
