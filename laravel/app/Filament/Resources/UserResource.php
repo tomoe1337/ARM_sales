@@ -46,15 +46,6 @@ class UserResource extends Resource
                             ->required()
                             ->maxLength(255),
                         
-                        Forms\Components\TextInput::make('login')
-                            ->label('Логин')
-                            ->required()
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule) {
-                                $user = auth()->user();
-                                return $rule->where('organization_id', $user->organization_id);
-                            }),
-                        
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
@@ -108,11 +99,6 @@ class UserResource extends Resource
                 
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
-                    ->searchable()
-                    ->sortable(),
-                
-                Tables\Columns\TextColumn::make('login')
-                    ->label('Логин')
                     ->searchable()
                     ->sortable(),
                 

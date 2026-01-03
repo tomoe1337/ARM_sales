@@ -62,7 +62,6 @@ class DatabaseSeeder extends Seeder
                 [
                     'name' => 'Иван',
                     'full_name' => 'Иванов',
-                    'login' => 'manager',
                     'password' => Hash::make('password'),
                     'role' => 'head',
                     'organization_id' => $organization->id,
@@ -78,7 +77,6 @@ class DatabaseSeeder extends Seeder
                 [
                     'name' => 'Иван',
                     'full_name' => 'Иванов',
-                    'login' => 'admin',
                     'password' => Hash::make('admin'),
                     'role' => 'admin',
                     'is_active' => true,
@@ -94,7 +92,6 @@ class DatabaseSeeder extends Seeder
                     [
                         'name' => 'Сотрудник ',
                         'full_name' => $i,
-                        'login' => 'employee' . $i,
                         'password' => Hash::make('password'),
                         'role' => 'manager',
                         'organization_id' => $organization->id,

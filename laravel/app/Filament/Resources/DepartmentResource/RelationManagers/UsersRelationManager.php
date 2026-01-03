@@ -35,15 +35,6 @@ class UsersRelationManager extends RelationManager
                             ->required()
                             ->maxLength(255),
                         
-                        Forms\Components\TextInput::make('login')
-                            ->label('Логин')
-                            ->required()
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule) {
-                                $department = $this->getOwnerRecord();
-                                return $rule->where('organization_id', $department->organization_id);
-                            }),
-                        
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
@@ -99,11 +90,6 @@ class UsersRelationManager extends RelationManager
                 
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
-                    ->searchable()
-                    ->sortable(),
-                
-                Tables\Columns\TextColumn::make('login')
-                    ->label('Логин')
                     ->searchable()
                     ->sortable(),
                 

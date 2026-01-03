@@ -27,7 +27,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'login' => 'required|string',
+            'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
 
@@ -46,7 +46,7 @@ class AuthController extends Controller
 
         \Log::info('Login failed');
         return back()->withErrors([
-            'login' => 'Неверные учетные данные.',
+            'email' => 'Неверные учетные данные.',
         ]);
     }
 
@@ -55,7 +55,6 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'full_name' => 'required|string|max:255',
-            'login' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'avatar' => 'nullable|image|max:2048',
@@ -80,7 +79,6 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'full_name' => $validated['full_name'],
-            'login' => $validated['login'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => UserRolesEnum::HEAD->value,

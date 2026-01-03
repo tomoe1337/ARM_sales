@@ -25,13 +25,6 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label for="login" class="form-label">Логин</label>
-                        <input type="text" class="form-control @error('login') is-invalid @enderror" id="login" name="login" required>
-                        @error('login')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" required>
                         @error('email')
