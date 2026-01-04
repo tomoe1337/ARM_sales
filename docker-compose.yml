@@ -7,9 +7,9 @@ services:
     container_name: arm_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: arm_sales
-      POSTGRES_USER: arm_user
-      POSTGRES_PASSWORD: arm_password_2024
+      POSTGRES_DB: ${POSTGRES_DB:-arm_sales}
+      POSTGRES_USER: ${POSTGRES_USER:-arm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,7 +18,7 @@ services:
     networks:
       - arm_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arm_user -d arm_sales"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arm_user} -d ${POSTGRES_DB:-arm_sales}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,9 +43,9 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: arm_sales
-      DB_USERNAME: arm_user
-      DB_PASSWORD: arm_password_2024
+      DB_DATABASE: ${POSTGRES_DB:-arm_sales}
+      DB_USERNAME: ${POSTGRES_USER:-arm_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
       
       # PsySH (Tinker) configuration
       XDG_CONFIG_HOME: /var/www/html/.config
@@ -69,9 +69,9 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: arm_sales
-      DB_USERNAME: arm_user
-      DB_PASSWORD: arm_password_2024
+      DB_DATABASE: ${POSTGRES_DB:-arm_sales}
+      DB_USERNAME: ${POSTGRES_USER:-arm_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,9 +93,9 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: arm_sales
-      DB_USERNAME: arm_user
-      DB_PASSWORD: arm_password_2024
+      DB_DATABASE: ${POSTGRES_DB:-arm_sales}
+      DB_USERNAME: ${POSTGRES_USER:-arm_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy

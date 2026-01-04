@@ -1,118 +1,99 @@
 #!/bin/bash
 
-# Скрипт деплоя ARM Sales на production сервер
-# Использование: ./deploy.sh
+# Скрипт деплоя ARM Sales
+# Генерирует пароли, создает .env и запускает контейнеры
 
 set -e
 
-echo "================================================"
 echo "🚀 Деплой ARM Sales"
-echo "================================================"
+echo ""
 
-# Проверка наличия docker и docker-compose
+# Проверка Docker
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker не установлен!"
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose не установлен!"
-    exit 1
-fi
+# Генерация безопасного пароля
+generate_password() {
+    openssl rand -base64 32 | tr -d "=+/" | cut -c1-25
+}
 
-# Проверка наличия .env файла
-if [ ! -f ./laravel/.env ]; then
-    echo "⚠️  Файл .env не найден!"
-    echo "📝 Создаю из .env.example..."
-    cp ./laravel/.env.example ./laravel/.env
-    echo "✅ Файл .env создан. Проверьте настройки!"
-fi
-
-# Остановка старых контейнеров
-echo ""
-echo "🛑 Остановка старых контейнеров..."
-docker-compose down
-
-# Сборка новых образов
-echo ""
-echo "🏗️  Сборка Docker образов..."
-docker-compose build --no-cache --pull
-
-# Запуск контейнеров
-echo ""
-echo "🚀 Запуск контейнеров..."
-docker-compose up -d
-
-# Ожидание готовности PostgreSQL
-echo ""
-echo "⏳ Ожидание готовности базы данных..."
-sleep 15
-
-# Установка зависимостей Composer
-echo ""
-echo "📦 Установка зависимостей Composer..."
-docker-compose exec -T php composer install --no-dev --optimize-autoloader --no-interaction
-
-# Генерация ключа приложения (если не установлен)
-echo ""
-echo "🔑 Проверка APP_KEY..."
-if ! docker-compose exec -T php grep -q "APP_KEY=base64:" /var/www/html/.env; then
-    echo "🔑 Генерация APP_KEY..."
-    docker-compose exec -T php php artisan key:generate --force
+# Создание или пересоздание .env
+if [ ! -f .env ]; then
+    CREATE_ENV=true
 else
-    echo "✅ APP_KEY уже установлен"
+    echo "✅ .env уже существует"
+    # Показываем текущий NGINX_CONF если есть
+    if grep -q "NGINX_CONF" .env; then
+        CURRENT_CONF=$(grep "NGINX_CONF" .env | cut -d'=' -f2)
+        echo "   Текущий NGINX_CONF: ${CURRENT_CONF}"
+    fi
+    echo ""
+    read -p "Пересоздать .env? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        CREATE_ENV=true
+        echo "🔄 Будет создан новый .env файл"
+    else
+        CREATE_ENV=false
+        echo "⏭️  Используется существующий .env"
+    fi
 fi
 
-# Создание необходимых директорий
-echo ""
-echo "📁 Создание необходимых директорий..."
-docker-compose exec -T php mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+if [ "$CREATE_ENV" = true ]; then
+    echo "🔑 Генерация паролей..."
+    DB_PASSWORD=$(generate_password)
+    
+    # Выбор окружения
+    echo ""
+    echo "Выберите окружение:"
+    echo "  1) Development (default.conf) - по умолчанию"
+    echo "  2) Production (production.conf)"
+    read -p "Ваш выбор [1]: " -n 1 -r
+    echo
+    
+    case $REPLY in
+        2)
+            NGINX_CONF="production.conf"
+            echo "✅ Выбрано: Production"
+            ;;
+        *)
+            NGINX_CONF="default.conf"
+            echo "✅ Выбрано: Development"
+            ;;
+    esac
+    
+    # Проверка существования выбранного конфига
+    if [ "$NGINX_CONF" = "production.conf" ] && [ ! -f "./docker/nginx/production.conf" ]; then
+        echo "⚠️  Внимание: файл production.conf не найден!"
+        read -p "Продолжить с default.conf? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Отменено"
+            exit 1
+        fi
+        NGINX_CONF="default.conf"
+    fi
+    
+    echo ""
+    echo "📝 Создание .env файла..."
+    cat > .env <<EOF
+# PostgreSQL настройки
+POSTGRES_DB=arm_sales
+POSTGRES_USER=arm_user
+POSTGRES_PASSWORD=${DB_PASSWORD}
 
-# Установка прав доступа
-echo ""
-echo "🔐 Установка прав доступа..."
-docker-compose exec -T php chmod -R 775 storage bootstrap/cache
-
-# Миграция базы данных
-echo ""
-echo "📊 Выполнение миграций..."
-docker-compose exec -T php php artisan migrate --force
-
-# Создание символической ссылки для storage
-echo ""
-echo "🔗 Создание символической ссылки storage..."
-docker-compose exec -T php php artisan storage:link || true
-
-# Очистка и создание кеша
-echo ""
-echo "🗑️  Очистка кеша..."
-docker-compose exec -T php php artisan config:clear
-docker-compose exec -T php php artisan cache:clear
-docker-compose exec -T php php artisan route:clear
-docker-compose exec -T php php artisan view:clear
+# Nginx конфигурация
+NGINX_CONF=${NGINX_CONF}
+EOF
+    echo "✅ .env создан (NGINX_CONF=${NGINX_CONF})"
+fi
 
 echo ""
-echo "📦 Создание кеша конфигурации..."
-docker-compose exec -T php php artisan config:cache
-docker-compose exec -T php php artisan route:cache
-docker-compose exec -T php php artisan view:cache
+echo "🐳 Запуск Docker Compose..."
+docker-compose --profile workers up -d --build
 
-# Статус контейнеров
 echo ""
-echo "================================================"
-echo "✅ Деплой завершен успешно!"
-echo "================================================"
-echo ""
-echo "📊 Статус контейнеров:"
+echo "✅ Готово!"
 docker-compose ps
-
-echo ""
-echo "🌐 Приложение доступно по адресу: http://localhost"
-echo ""
-echo "📝 Полезные команды:"
-echo "  - Логи:            docker-compose logs -f"
-echo "  - Остановка:       docker-compose down"
-echo "  - Перезапуск:      docker-compose restart"
-echo "  - Статус:          docker-compose ps"
-echo "  - Artisan:         docker-compose exec php php artisan"
-echo ""
