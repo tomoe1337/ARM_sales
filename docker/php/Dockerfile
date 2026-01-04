@@ -19,6 +19,7 @@ RUN set -eux; \
       icu-dev \
       libpq \
       postgresql-dev \
+      postgresql-client \
       libzip-dev \
       oniguruma-dev \
       libjpeg-turbo-dev \

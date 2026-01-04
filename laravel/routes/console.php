@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\BackupCommand;
 use App\Console\Commands\ProcessSubscriptions;
 use App\Console\Commands\SyncBlueSalesCommand;
 use Illuminate\Foundation\Inspiring;
@@ -23,4 +24,13 @@ Schedule::command(SyncBlueSalesCommand::class, ['--days' => 1])
     ->appendOutputTo(storage_path('logs/bluesales-sync.log'))
     ->onFailure(function () {
         Log::error('Ошибка синхронизации с BlueSales');
+    });
+
+// Резервное копирование - ежедневно в 02:00
+Schedule::command(BackupCommand::class)
+    ->daily()
+    ->at('02:00')
+    ->appendOutputTo(storage_path('logs/backup.log'))
+    ->onFailure(function () {
+        Log::error('Ошибка создания резервной копии');
     });
