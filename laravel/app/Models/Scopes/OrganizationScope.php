@@ -30,20 +30,10 @@ class OrganizationScope implements Scope
         if ($user->isOrganizationOwner()) {
             $builder->where($table . '.organization_id', $user->organization_id);
         }
-        // Руководитель отдела видит только свой отдел
-        elseif ($user->isHead()) {
-            $builder->where($table . '.organization_id', $user->organization_id)
-                    ->where($table . '.department_id', $user->department_id);
-        }
-        // Менеджер видит только свои данные (если есть user_id в таблице)
+        // Руководитель отдела и менеджер видят всех клиентов своего отдела
         else {
             $builder->where($table . '.organization_id', $user->organization_id)
                     ->where($table . '.department_id', $user->department_id);
-            
-            // Если в таблице есть user_id, фильтруем по нему
-            if ($builder->getModel()->getConnection()->getSchemaBuilder()->hasColumn($table, 'user_id')) {
-                $builder->where($table . '.user_id', $user->id);
-            }
         }
     }
 }

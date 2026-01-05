@@ -16,7 +16,7 @@ class OrderSynchronizer
 
         foreach ($orders as $orderData) {
             try {
-                $transformedData = OrderTransformer::fromBlueSalesData($orderData);
+                $transformedData = OrderTransformer::fromBlueSalesData($orderData, $departmentId);
                 
                 if (empty($transformedData['bluesales_id'])) {
                     $stats['errors']++;
@@ -28,7 +28,10 @@ class OrderSynchronizer
                     $client = Client::where('bluesales_id', (string) $orderData['customer']['id'])->first();
                     if ($client) {
                         $transformedData['client_id'] = $client->id;
-                        $transformedData['user_id'] = $client->user_id;
+                        // Используем user_id из трансформера (из manager в BlueSales), если нет - берем из клиента
+                        if (!isset($transformedData['user_id'])) {
+                            $transformedData['user_id'] = $client->user_id;
+                        }
                         $transformedData['organization_id'] = $organizationId;
                         $transformedData['department_id'] = $departmentId;
                     } else {

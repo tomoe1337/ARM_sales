@@ -4,7 +4,7 @@ namespace App\Services\BlueSales\Transformers;
 
 class CustomerTransformer
 {
-    public static function fromBlueSalesData(array $data): array
+    public static function fromBlueSalesData(array $data, ?int $departmentId = null): array
     {
         return [
             'bluesales_id' => (string) ($data['id'] ?? ''),
@@ -29,7 +29,7 @@ class CustomerTransformer
             'notes' => ($data['shortNotes'] ?? '') . ' ' . ($data['comments'] ?? ''),
             'additional_contacts' => $data['otherContacts'] ?? null,
             'description' => $data['comments'] ?? null,
-            'user_id' => isset($data['manager']['id']) ? self::findManagerUserId($data['manager']) : 1,
+            'user_id' => isset($data['manager']) ? self::findManagerUserId($data['manager'], $departmentId) : null,
             'bluesales_last_sync' => now(),
         ];
     }
@@ -58,10 +58,19 @@ class CustomerTransformer
         };
     }
 
-    private static function findManagerUserId(array $manager): int
+    private static function findManagerUserId(array $manager, ?int $departmentId = null): ?int
     {
-        // Пока просто возвращаем 1, можно будет доработать поиск по email
-        return 1;
+        $email = $manager['login'] ?? $manager['email'] ?? null;
+        
+        if (!$email || !$departmentId) {
+            return null;
+        }
+        
+        $user = \App\Models\User::where('email', $email)
+            ->where('department_id', $departmentId)
+            ->first();
+        
+        return $user?->id;
     }
 
     public static function toBlueSalesData(\App\Models\Client $client, bool $includeManager = false): array

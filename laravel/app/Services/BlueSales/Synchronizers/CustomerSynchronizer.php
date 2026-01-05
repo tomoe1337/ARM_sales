@@ -26,7 +26,7 @@ class CustomerSynchronizer
                     continue;
                 }
                 
-                $transformedData = CustomerTransformer::fromBlueSalesData($customerData);
+                $transformedData = CustomerTransformer::fromBlueSalesData($customerData, $departmentId);
                 
                 if (empty($transformedData['bluesales_id'])) {
                     $stats['errors']++;
@@ -83,13 +83,6 @@ class CustomerSynchronizer
                     // Создаем нового клиента
                     $transformedData['organization_id'] = $organizationId;
                     $transformedData['department_id'] = $departmentId;
-                    
-                    if (!isset($transformedData['user_id'])) {
-                        $user = User::where('department_id', $departmentId)->first();
-                        if ($user) {
-                            $transformedData['user_id'] = $user->id;
-                        }
-                    }
                     
                     Client::create($transformedData);
                     $stats['created']++;
