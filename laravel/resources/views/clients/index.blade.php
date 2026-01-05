@@ -21,6 +21,44 @@
 
     <div class="card">
         <div class="card-body">
+            <div class="mb-3">
+                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#clientFilters" aria-expanded="{{ request('first_contact_date_from') || request('first_contact_date_to') ? 'true' : 'false' }}" aria-controls="clientFilters">
+                    <i class="fas fa-filter"></i>
+                    <span>Фильтры</span>
+                    <i class="fas fa-chevron-down ms-auto" style="transition: transform 0.2s;"></i>
+                </button>
+            </div>
+            <form method="GET" action="{{ route('clients.index') }}" class="mb-4">
+                <div class="collapse {{ request('first_contact_date_from') || request('first_contact_date_to') ? 'show' : '' }}" id="clientFilters">
+                    <div class="border rounded p-3 bg-light" style="background-color: #f8f9fa !important;">
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold mb-2" style="font-size: 0.875rem; color: #495057;">
+                                Фильтр по дате первого контакта
+                            </label>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3 align-items-end">
+                            <div style="flex: 1; min-width: 180px; max-width: 220px;">
+                                <label for="first_contact_date_from" class="form-label small text-muted mb-1 fw-normal">От</label>
+                                <input type="date" class="form-control form-control-sm" id="first_contact_date_from" name="first_contact_date_from" value="{{ request('first_contact_date_from') }}" style="border: 1px solid #dee2e6;">
+                            </div>
+                            <div style="flex: 1; min-width: 180px; max-width: 220px;">
+                                <label for="first_contact_date_to" class="form-label small text-muted mb-1 fw-normal">До</label>
+                                <input type="date" class="form-control form-control-sm" id="first_contact_date_to" name="first_contact_date_to" value="{{ request('first_contact_date_to') }}" style="border: 1px solid #dee2e6;">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-sm btn-primary px-3" style="font-weight: 500;">
+                                    Применить
+                                </button>
+                                @if(request('first_contact_date_from') || request('first_contact_date_to'))
+                                    <a href="{{ route('clients.index') }}" class="btn btn-sm btn-outline-secondary px-3" style="font-weight: 500;">
+                                        Сбросить
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -32,7 +70,8 @@
                             <th>Действия</th>
                         </tr>
                     </thead>
-                    <tbody>                        @foreach($clients as $client)
+                    <tbody>
+                        @foreach($clients as $client)
                             <tr>
                                 <td>
                                     <div><strong>{{ $client->name }}</strong></div>
@@ -82,7 +121,39 @@
                     </tbody>
                 </table>
             </div>
+            @if($clients->hasPages())
+                <div class="mt-3">
+                    {{ $clients->links('vendor.pagination.bootstrap-5-clean') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterButtons = document.querySelectorAll('[data-bs-toggle="collapse"][data-bs-target^="#"]');
+        filterButtons.forEach(button => {
+            const targetId = button.getAttribute('data-bs-target');
+            const target = document.querySelector(targetId);
+            const chevron = button.querySelector('.fa-chevron-down');
+            
+            if (target) {
+                target.addEventListener('show.bs.collapse', function() {
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                });
+                target.addEventListener('hide.bs.collapse', function() {
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                });
+                
+                // Устанавливаем начальное состояние
+                if (target.classList.contains('show') && chevron) {
+                    chevron.style.transform = 'rotate(180deg)';
+                }
+            }
+        });
+    });
+</script>
+@endpush 

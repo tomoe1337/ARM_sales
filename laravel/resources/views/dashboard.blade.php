@@ -201,7 +201,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Клиенты для контакта</h5>
+                        <h5 class="mb-0">Напоминания</h5>
                         <a href="{{ route('clients.index') }}" class="btn btn-primary btn-sm">Все клиенты</a>
                     </div>
                     <div class="card-body">

@@ -14,7 +14,17 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $clients = Client::all();
+        $query = Client::query();
+
+        if ($request->filled('first_contact_date_from')) {
+            $query->whereDate('first_contact_date', '>=', $request->first_contact_date_from);
+        }
+
+        if ($request->filled('first_contact_date_to')) {
+            $query->whereDate('first_contact_date', '<=', $request->first_contact_date_to);
+        }
+
+        $clients = $query->orderBy('first_contact_date', 'desc')->paginate(15)->withQueryString();
 
         return view('clients.index', compact('clients'));
     }

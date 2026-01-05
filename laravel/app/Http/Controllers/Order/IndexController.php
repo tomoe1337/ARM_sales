@@ -22,7 +22,15 @@ class IndexController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $orders = $query->get();
+        if ($request->filled('created_at_from')) {
+            $query->whereDate('created_at', '>=', $request->created_at_from);
+        }
+
+        if ($request->filled('created_at_to')) {
+            $query->whereDate('created_at', '<=', $request->created_at_to);
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         return view('orders.index', compact('orders'));
     }

@@ -65,6 +65,13 @@ class ClientOrderSeeder extends Seeder
         // Создаем лидов (со статусами в соответствии с наличием заказов)
         for ($i = 0; $i < 80; $i++) {
             $user = $users->random();
+            
+            // Проверяем, что у пользователя есть organization_id и department_id
+            if (!$user->organization_id || !$user->department_id) {
+                $this->command->warn("Пользователь {$user->id} не имеет organization_id или department_id. Пропускаем.");
+                continue;
+            }
+            
             $firstName = $faker->firstName();
             $lastName = $faker->lastName();
             $fullName = $lastName . ' ' . $firstName;
@@ -89,11 +96,13 @@ class ClientOrderSeeder extends Seeder
             $client = [
                 'name' => $fullName,
                 'full_name' => $fullName,
-                'phone' => '+7' . $faker->numerify('##########'),
+                'phone' => $faker->optional(0.9)->passthrough('+7' . $faker->numerify('##########')), // phone теперь nullable
                 'email' => $faker->unique()->safeEmail(),
                 'address' => $faker->address(),
                 'description' => $faker->optional(0.6)->paragraph(),
                 'user_id' => $user->id,
+                'organization_id' => $user->organization_id,
+                'department_id' => $user->department_id,
                 
                 // BlueSales поля
                 'bluesales_id' => $faker->unique()->numberBetween(1000, 99999),
