@@ -43,9 +43,12 @@ class SyncController extends Controller
             $orderSynchronizer
         );
 
+        $user = Auth::user();
         $result = $syncService->syncDataForPeriod(
             $request->login,
             $request->api_key,
+            $user->organization_id,
+            $user->department_id,
             $request->days_back
         );
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerSynchronizer
 {
-    public function syncCustomers(array $customers): array
+    public function syncCustomers(array $customers, int $organizationId, int $departmentId): array
     {
         Log::info('CustomerSynchronizer::syncCustomers called', ['customers_count' => count($customers)]);
         $stats = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'errors' => 0];
@@ -81,16 +81,14 @@ class CustomerSynchronizer
                     }
                 } else {
                     // Создаем нового клиента
-                    // Назначаем первому доступному пользователю, если не указан
-                    if (!isset($transformedData['user_id'])) {
-                        $transformedData['user_id'] = 1; // Default user
-                    }
+                    $transformedData['organization_id'] = $organizationId;
+                    $transformedData['department_id'] = $departmentId;
                     
-                    // Получаем organization_id и department_id из пользователя
-                    $user = User::find($transformedData['user_id']);
-                    if ($user) {
-                        $transformedData['organization_id'] = $user->organization_id;
-                        $transformedData['department_id'] = $user->department_id;
+                    if (!isset($transformedData['user_id'])) {
+                        $user = User::where('department_id', $departmentId)->first();
+                        if ($user) {
+                            $transformedData['user_id'] = $user->id;
+                        }
                     }
                     
                     Client::create($transformedData);

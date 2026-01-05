@@ -24,8 +24,8 @@ return new class extends Migration
 
         foreach ($tables as $tableName) {
             Schema::table($tableName, function (Blueprint $table) {
-                $table->foreignId('organization_id')->nullable()->after('id')->constrained('organizations')->onDelete('cascade');
-                $table->foreignId('department_id')->nullable()->after('organization_id')->constrained('departments')->onDelete('set null');
+                $table->foreignId('organization_id')->after('id')->constrained('organizations')->onDelete('cascade');
+                $table->foreignId('department_id')->after('organization_id')->constrained('departments')->onDelete('restrict');
                 $table->index(['organization_id', 'department_id']);
             });
         }

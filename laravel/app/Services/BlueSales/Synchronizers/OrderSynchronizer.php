@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderSynchronizer
 {
-    public function syncOrders(array $orders): array
+    public function syncOrders(array $orders, int $organizationId, int $departmentId): array
     {
         Log::info('OrderSynchronizer::syncOrders called', ['orders_count' => count($orders)]);
         $stats = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'errors' => 0, 'skipped' => 0];
@@ -28,10 +28,9 @@ class OrderSynchronizer
                     $client = Client::where('bluesales_id', (string) $orderData['customer']['id'])->first();
                     if ($client) {
                         $transformedData['client_id'] = $client->id;
-                        $transformedData['user_id'] = $client->user_id; // Назначаем менеджера клиента
-                        // Берем organization_id и department_id из клиента
-                        $transformedData['organization_id'] = $client->organization_id;
-                        $transformedData['department_id'] = $client->department_id;
+                        $transformedData['user_id'] = $client->user_id;
+                        $transformedData['organization_id'] = $organizationId;
+                        $transformedData['department_id'] = $departmentId;
                     } else {
                         Log::warning('Client not found for order', [
                             'order_bluesales_id' => $transformedData['bluesales_id'],

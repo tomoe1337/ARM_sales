@@ -116,7 +116,7 @@ class SyncDepartmentJob implements ShouldQueue
             );
 
             // Выполняем синхронизацию
-            $result = $syncService->syncDataForPeriod($login, $apiKey, $this->daysBack);
+            $result = $syncService->syncDataForPeriod($login, $apiKey, $department->organization_id, $department->id, $this->daysBack);
 
             if ($result['success']) {
                 $credential->markSyncSuccess();

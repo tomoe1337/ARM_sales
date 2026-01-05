@@ -23,7 +23,7 @@ class BlueSalesSyncService
         $this->orderSynchronizer = $orderSynchronizer;
     }
 
-    public function syncDataForPeriod(string $login, string $apiKey, int $daysBack = 30): array
+    public function syncDataForPeriod(string $login, string $apiKey, int $organizationId, int $departmentId, int $daysBack = 30): array
     {
         // Создаем новый экземпляр API сервиса с ключом
         $apiService = new BlueSalesApiService($login, $apiKey);
@@ -47,13 +47,13 @@ class BlueSalesSyncService
             // Синхронизируем клиентов
             $customers = $apiService->getCustomers($startDate, $endDate);
             if (!empty($customers)) {
-                $result['customers'] = $this->customerSynchronizer->syncCustomers($customers);
+                $result['customers'] = $this->customerSynchronizer->syncCustomers($customers, $organizationId, $departmentId);
             }
 
             // Синхронизируем заказы
             $orders = $apiService->getOrders($startDate, $endDate);
             if (!empty($orders)) {
-                $result['orders'] = $this->orderSynchronizer->syncOrders($orders);
+                $result['orders'] = $this->orderSynchronizer->syncOrders($orders, $organizationId, $departmentId);
             }
 
             $result['message'] = 'Синхронизация завершена успешно';
