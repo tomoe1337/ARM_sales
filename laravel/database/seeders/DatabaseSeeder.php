@@ -140,15 +140,17 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        // Создаем планы только один раз для первых 3 пользователей
-        for ($i = 1; $i <= 3; $i++) {
+        // Создаем планы для первых 3 пользователей
+        $users->take(3)->each(function ($user) use ($faker) {
             Plan::firstOrCreate(
-                ['user_id' => $i],
+                ['user_id' => $user->id],
                 [
                     'monthly_plan' => $faker->numberBetween(50000, 200000),
                     'daily_plan' => $faker->numberBetween(1000, 10000),
+                    'organization_id' => $user->organization_id,
+                    'department_id' => $user->department_id,
                 ]
             );
-        }
+        });
     }
 }
