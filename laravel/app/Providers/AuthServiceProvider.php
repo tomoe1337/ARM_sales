@@ -6,11 +6,13 @@ use App\Models\Client;
 use App\Models\Deal;
 use App\Models\Order;
 use App\Models\Plan;
+use App\Models\SubscriptionPlan;
 use App\Models\Task;
 use App\Policies\ClientPolicy;
 use App\Policies\DealPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\PlanPolicy;
+use App\Policies\SubscriptionPlanPolicy;
 use App\Policies\TaskPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -26,6 +28,7 @@ class AuthServiceProvider extends ServiceProvider
         Deal::class => DealPolicy::class,
         Order::class => OrderPolicy::class,
         Plan::class => PlanPolicy::class,
+        SubscriptionPlan::class => SubscriptionPlanPolicy::class,
         Task::class => TaskPolicy::class,
     ];
 
