@@ -201,27 +201,115 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Последние клиенты</h5>
+                        <h5 class="mb-0">Клиенты для контакта</h5>
                         <a href="{{ route('clients.index') }}" class="btn btn-primary btn-sm">Все клиенты</a>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Имя</th>
-                                        <th>Заказов</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($dashboardData['latestClients'] as $client)
-                                        <tr>
-                                            <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
-                                            <td>{{ $client->orders_count }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="today-tab" data-bs-toggle="tab" data-bs-target="#today" type="button" role="tab">
+                                    Сегодня
+                                    @if($dashboardData['clientsToday']->count() > 0)
+                                        <span class="badge bg-warning ms-1">{{ $dashboardData['clientsToday']->count() }}</span>
+                                    @endif
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tomorrow-tab" data-bs-toggle="tab" data-bs-target="#tomorrow" type="button" role="tab">
+                                    Завтра
+                                    @if($dashboardData['clientsTomorrow']->count() > 0)
+                                        <span class="badge bg-secondary text-white ms-1">{{ $dashboardData['clientsTomorrow']->count() }}</span>
+                                    @endif
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="overdue-tab" data-bs-toggle="tab" data-bs-target="#overdue" type="button" role="tab">
+                                    Просрочено
+                                    @if($dashboardData['clientsOverdue']->count() > 0)
+                                        <span class="badge bg-danger ms-1">{{ $dashboardData['clientsOverdue']->count() }}</span>
+                                    @endif
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="today" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Имя</th>
+                                                <th>Время</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($dashboardData['clientsToday'] as $client)
+                                                <tr>
+                                                    <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
+                                                    <td>
+                                                        <small class="text-muted">{{ $client->next_contact_date->format('H:i') }}</small>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="2" class="text-center text-muted py-3">Нет клиентов на сегодня</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tomorrow" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Имя</th>
+                                                <th>Время</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($dashboardData['clientsTomorrow'] as $client)
+                                                <tr>
+                                                    <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
+                                                    <td>
+                                                        <small class="text-muted">{{ $client->next_contact_date->format('H:i') }}</small>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="2" class="text-center text-muted py-3">Нет клиентов на завтра</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="overdue" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Имя</th>
+                                                <th>Дата</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($dashboardData['clientsOverdue'] as $client)
+                                                <tr>
+                                                    <td><a href="{{ route('clients.show', $client) }}">{{ $client->name }}</a></td>
+                                                    <td>
+                                                        <small class="text-danger">{{ $client->next_contact_date->format('d.m.Y H:i') }}</small>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="2" class="text-center text-muted py-3">Нет просроченных контактов</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -87,6 +87,14 @@ class Client extends Model
 
         // Автоматическое заполнение organization_id и department_id при создании
         static::creating(function ($client) {
+            \Illuminate\Support\Facades\Log::info('Client::creating observer fired', [
+                'bluesales_id' => $client->bluesales_id,
+                'organization_id_before' => $client->organization_id,
+                'department_id_before' => $client->department_id,
+                'auth_check' => auth()->check(),
+                'user_id' => auth()->check() ? auth()->id() : null,
+            ]);
+            
             if (auth()->check()) {
                 $user = auth()->user();
                 if (!$client->organization_id && $user->organization_id) {
@@ -96,6 +104,11 @@ class Client extends Model
                     $client->department_id = $user->department_id;
                 }
             }
+            
+            \Illuminate\Support\Facades\Log::info('Client::creating observer finished', [
+                'organization_id_after' => $client->organization_id,
+                'department_id_after' => $client->department_id,
+            ]);
         });
     }
 }

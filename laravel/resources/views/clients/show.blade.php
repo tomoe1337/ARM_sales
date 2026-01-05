@@ -141,12 +141,15 @@
                         @endif
                     </dl>
 
-                    <div class="mt-4">
-                        <a href="{{ route('orders.create', ['client_id' => $client->id]) }}" class="btn btn-primary">
-                            Создать заказ
+                    <div class="mt-4 d-flex gap-2">
+                        <a href="{{ route('clients.edit', $client) }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{{ route('orders.create', ['client_id' => $client->id]) }}" class="btn btn-success">
+                            <i class="fas fa-shopping-cart"></i> Создать заказ
                         </a>
                         <a href="{{ route('clients.index') }}" class="btn btn-secondary">
-                            Назад к списку клиентов
+                            <i class="fas fa-arrow-left"></i> Назад к списку
                         </a>
                     </div>
                 </div>

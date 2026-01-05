@@ -91,18 +91,64 @@ class CustomerSynchronizer
                     }
                 } else {
                     // Создаем нового клиента
+                    Log::info('Creating new client - before setting org/dept', [
+                        'bluesales_id' => $transformedData['bluesales_id'] ?? null,
+                        'organization_id_param' => $organizationId,
+                        'department_id_param' => $departmentId,
+                        'transformed_data_keys' => array_keys($transformedData),
+                        'has_org_in_transformed' => isset($transformedData['organization_id']),
+                        'has_dept_in_transformed' => isset($transformedData['department_id']),
+                    ]);
+                    
                     $transformedData['organization_id'] = $organizationId;
                     $transformedData['department_id'] = $departmentId;
                     
-                    Client::create($transformedData);
-                    $stats['created']++;
+                    Log::info('Creating new client - after setting org/dept', [
+                        'bluesales_id' => $transformedData['bluesales_id'] ?? null,
+                        'organization_id' => $transformedData['organization_id'] ?? null,
+                        'department_id' => $transformedData['department_id'] ?? null,
+                        'user_id' => $transformedData['user_id'] ?? null,
+                        'all_keys' => array_keys($transformedData),
+                    ]);
+                    
+                    try {
+                        $client = Client::create($transformedData);
+                        Log::info('Client created successfully', [
+                            'client_id' => $client->id,
+                            'organization_id' => $client->organization_id,
+                            'department_id' => $client->department_id,
+                        ]);
+                        $stats['created']++;
+                    } catch (\Exception $createException) {
+                        Log::error('Failed to create client', [
+                            'bluesales_id' => $transformedData['bluesales_id'] ?? null,
+                            'organization_id' => $transformedData['organization_id'] ?? null,
+                            'department_id' => $transformedData['department_id'] ?? null,
+                            'error' => $createException->getMessage(),
+                            'error_trace' => $createException->getTraceAsString(),
+                            'transformed_data' => $transformedData,
+                        ]);
+                        throw $createException;
+                    }
                 }
             } catch (\Exception $e) {
-                Log::error('Error syncing customer', [
+                $logData = [
                     'customer_data' => is_array($customerData) ? $customerData : ['invalid_data' => $customerData],
+                    'organization_id' => $organizationId ?? null,
+                    'department_id' => $departmentId ?? null,
                     'error' => $e->getMessage(),
+                    'error_code' => $e->getCode(),
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine(),
                     'trace' => $e->getTraceAsString()
-                ]);
+                ];
+                
+                if (isset($transformedData)) {
+                    $logData['bluesales_id'] = $transformedData['bluesales_id'] ?? null;
+                    $logData['transformed_data'] = $transformedData;
+                }
+                
+                Log::error('Error syncing customer', $logData);
                 $stats['errors']++;
             }
         }

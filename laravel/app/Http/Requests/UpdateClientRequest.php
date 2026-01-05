@@ -23,8 +23,9 @@ class UpdateClientRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
+            'user_id' => 'nullable|integer|exists:users,id',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             // BlueSales дополнительные поля

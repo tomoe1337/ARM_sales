@@ -38,8 +38,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="phone" class="form-label">Телефон <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" required>
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}">
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -66,88 +66,6 @@
                             @error('assignee_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
-
-                        <!-- ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ (сворачиваемая) -->
-                        <div class="mb-3">
-                            <button class="btn btn-outline-secondary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#additionalInfo" aria-expanded="false">
-                                <i class="bi bi-plus-circle me-2"></i>Дополнительная информация
-                            </button>
-                        </div>
-
-                        <div class="collapse" id="additionalInfo">
-                            <div class="card card-body mb-4">
-                                <div class="mb-3">
-                                    <label for="full_name" class="form-label">Полное имя</label>
-                                    <input type="text" class="form-control @error('full_name') is-invalid @enderror" id="full_name" name="full_name" value="{{ old('full_name') }}">
-                                    @error('full_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <div class="form-text">Полное имя клиента (отличается от краткого имени)</div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="country" class="form-label">Страна</label>
-                                            <input type="text" class="form-control @error('country') is-invalid @enderror" id="country" name="country" value="{{ old('country') }}">
-                                            @error('country')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="city" class="form-label">Город</label>
-                                            <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city') }}">
-                                            @error('city')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="birth_date" class="form-label">Дата рождения</label>
-                                            <input type="date" class="form-control @error('birth_date') is-invalid @enderror" id="birth_date" name="birth_date" value="{{ old('birth_date') }}">
-                                            @error('birth_date')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="gender" class="form-label">Пол</label>
-                                            <select class="form-control @error('gender') is-invalid @enderror" id="gender" name="gender">
-                                                <option value="">Не указан</option>
-                                                <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Мужской</option>
-                                                <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Женский</option>
-                                            </select>
-                                            @error('gender')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">Адрес</label>
-                                    <textarea class="form-control @error('address') is-invalid @enderror" id="address" name="address" rows="2">{{ old('address') }}</textarea>
-                                    @error('address')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-0">
-                                    <label for="description" class="form-label">Описание</label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="2">{{ old('description') }}</textarea>
-                                    @error('description')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
                         </div>
 
                         <!-- CRM ИНФОРМАЦИЯ (сворачиваемая) -->
@@ -242,6 +160,88 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                     <div class="form-text">Дополнительные телефоны, email и т.д.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ (сворачиваемая) -->
+                        <div class="mb-3">
+                            <button class="btn btn-outline-secondary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#additionalInfo" aria-expanded="false">
+                                <i class="bi bi-plus-circle me-2"></i>Дополнительная информация
+                            </button>
+                        </div>
+
+                        <div class="collapse" id="additionalInfo">
+                            <div class="card card-body mb-4">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Полное имя</label>
+                                    <input type="text" class="form-control @error('full_name') is-invalid @enderror" id="full_name" name="full_name" value="{{ old('full_name') }}">
+                                    @error('full_name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div class="form-text">Полное имя клиента (отличается от краткого имени)</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="country" class="form-label">Страна</label>
+                                            <input type="text" class="form-control @error('country') is-invalid @enderror" id="country" name="country" value="{{ old('country') }}">
+                                            @error('country')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="city" class="form-label">Город</label>
+                                            <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city') }}">
+                                            @error('city')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="birth_date" class="form-label">Дата рождения</label>
+                                            <input type="date" class="form-control @error('birth_date') is-invalid @enderror" id="birth_date" name="birth_date" value="{{ old('birth_date') }}">
+                                            @error('birth_date')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="gender" class="form-label">Пол</label>
+                                            <select class="form-control @error('gender') is-invalid @enderror" id="gender" name="gender">
+                                                <option value="">Не указан</option>
+                                                <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Мужской</option>
+                                                <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Женский</option>
+                                            </select>
+                                            @error('gender')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Адрес</label>
+                                    <textarea class="form-control @error('address') is-invalid @enderror" id="address" name="address" rows="2">{{ old('address') }}</textarea>
+                                    @error('address')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-0">
+                                    <label for="description" class="form-label">Описание</label>
+                                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="2">{{ old('description') }}</textarea>
+                                    @error('description')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>

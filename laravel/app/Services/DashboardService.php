@@ -79,8 +79,33 @@ class DashboardService
 
             $dashboardData['activeTasks'] = $user->isHead() ? Task::where('status', '!=', 'completed')->with(['assignee'])->latest()->take(5)->get() : Task::where('user_id', $user->id)->where('status', '!=', 'completed')->latest()->take(5)->get();
             $dashboardData['latestOrders'] = $user->isHead() ? Order::with('client')->latest()->take(5)->get() : Order::where('user_id', $user->id)->with('client')->latest()->take(5)->get();
-            $dashboardData['latestClients'] = $user->isHead() ? Client::withCount('orders')->latest()->take(5)->get() : Client::where('user_id', $user->id)->withCount('orders')->latest()->take(5)->get();
             $dashboardData['activeTasksCount'] = $dashboardData['activeTasks']->count();
+
+            // Клиенты по дате следующего контакта
+            $clientsQuery = $user->isHead() 
+                ? Client::whereNotNull('next_contact_date')
+                : Client::where('user_id', $user->id)->whereNotNull('next_contact_date');
+
+            $today = now()->startOfDay();
+            $tomorrow = now()->addDay()->startOfDay();
+
+            $dashboardData['clientsToday'] = (clone $clientsQuery)
+                ->whereDate('next_contact_date', $today->toDateString())
+                ->orderBy('next_contact_date')
+                ->take(10)
+                ->get();
+
+            $dashboardData['clientsTomorrow'] = (clone $clientsQuery)
+                ->whereDate('next_contact_date', $tomorrow->toDateString())
+                ->orderBy('next_contact_date')
+                ->take(10)
+                ->get();
+
+            $dashboardData['clientsOverdue'] = (clone $clientsQuery)
+                ->where('next_contact_date', '<', $today)
+                ->orderBy('next_contact_date', 'asc')
+                ->take(10)
+                ->get();
         }
 
         return $dashboardData;
