@@ -36,13 +36,22 @@ class CustomerSynchronizer
                 $client = Client::where('bluesales_id', $transformedData['bluesales_id'])->first();
 
                 if ($client) {
+                    // Исправляем старые данные с NULL organization_id/department_id
+                    if (!$client->organization_id || !$client->department_id) {
+                        $client->update([
+                            'organization_id' => $organizationId,
+                            'department_id' => $departmentId
+                        ]);
+                    }
+                    
                     // Проверяем, есть ли изменения
                     $hasChanges = false;
                     $changedFields = [];
                     
                     foreach ($transformedData as $key => $value) {
-                        if ($key === 'bluesales_last_sync') {
-                            continue; // Пропускаем поле синхронизации
+                        // Пропускаем служебные поля
+                        if (in_array($key, ['bluesales_last_sync', 'organization_id', 'department_id'])) {
+                            continue;
                         }
                         
                         $currentValue = $client->getAttribute($key);
@@ -68,8 +77,9 @@ class CustomerSynchronizer
                             'changed_fields' => $changedFields
                         ]);
                         
-                        // Обновляем существующего клиента только при наличии изменений
-                        $client->update($transformedData);
+                        // Исключаем служебные поля из обновления
+                        $updateData = array_diff_key($transformedData, array_flip(['organization_id', 'department_id', 'bluesales_last_sync']));
+                        $client->update($updateData);
                         $stats['updated']++;
                     } else {
                         // Изменений нет, обновляем только время синхронизации
