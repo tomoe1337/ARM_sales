@@ -1,0 +1,94 @@
+Orders::all();
+Order::all();
+[200~Order::whereNull('organization_id')->orWhereNull('department_id')->update([
+Order::whereNull('organization_id')->orWhereNull('department_id')->update([
+    'organization_id' => 1,
+    'department_id' => 1
+]);
+AnalysisAiReport::all();
+AnalysisAiReport::all();
+AnalysisAiReport::all();
+AnalysisAiReport::all();
+AnalysisAiReport::find(2)->delete;
+AnalysisAiReport::all();
+AnalysisAiReport::find(1);
+AnalysisAiReport::find(2);
+AnalysisAiReport::find(3);
+AnalysisAiReport::find(2)->delete();
+use Illuminate\Support\Carbon;
+// Получаем все клиенты и заказы
+$clients = \App\Models\Client::all();
+$orders = \App\Models\Order::all();
+// Сдвигаем даты
+foreach ($clients as $client) {
+    $client->created_at = $client->created_at->subDays(8);
+    $client->updated_at = $client->updated_at->subDays(8);
+    $client->save();
+}
+foreach ($orders as $order) {
+    $order->created_at = $order->created_at->subDays(8);
+    $order->updated_at = $order->updated_at->subDays(8);
+    $order->save();
+}
+echo "Готово! Обработано клиентов: " . $clients->count() . ", заказов: " . $orders->count() . "\n";
+exit
+// Проверка: сколько заказов попадает через created_at
+$ordersByCreated = \App\Models\Order::where('created_at', '>=', now()->subWeek())->count();
+echo "Заказов через created_at (>= 7 дней назад): " . $ordersByCreated . "\n";
+// Проверка: сколько заказов попадает через updated_at
+$ordersByUpdated = \App\Models\Order::where('updated_at', '>=', now()->subWeek())
+    ->where('created_at', '<', now()->subWeek())
+    ->count();
+echo "Заказов через updated_at (но created_at старый): " . $ordersByUpdated . "\n";
+// Проверка: когда был последний updated_at
+$lastUpdated = \App\Models\Order::max('updated_at');
+echo "Последний updated_at: " . $lastUpdated . "\n";
+// Проверка: сколько заказов имеют updated_at в последние 7 дней
+$recentUpdated = \App\Models\Order::where('updated_at', '>=', now()->subWeek())->count();
+echo "Всего заказов с updated_at >= 7 дней назад: " . $recentUpdated . "\n";
+// Проверка: сколько заказов попадает через created_at
+$ordersByCreated = \App\Models\Order::where('created_at', '>=', now()->subWeek())->count();
+echo "Заказов через created_at (>= 7 дней назад): " . $ordersByCreated . "\n";
+// Проверка: сколько заказов попадает через updated_at
+$ordersByUpdated = \App\Models\Order::where('updated_at', '>=', now()->subWeek())
+    ->where('created_at', '<', now()->subWeek())
+    ->count();
+echo "Заказов через updated_at (но created_at старый): " . $ordersByUpdated . "\n";
+// Проверка: когда был последний updated_at
+$lastUpdated = \App\Models\Order::max('updated_at');
+echo "Последний updated_at: " . $lastUpdated . "\n";
+// Проверка: сколько заказов имеют updated_at в последние 7 дней
+$recentUpdated = \App\Models\Order::where('updated_at', '>=', now()->subWeek())->count();
+echo "Всего заказов с updated_at >= 7 дней назад: " . $recentUpdated . "\n";
+// Прямой SQL update - обходит все события и обсерверы
+use Illuminate\Support\Facades\DB;
+// Для клиентов
+DB::table('clients')->update([
+    'created_at' => DB::raw("created_at - INTERVAL '8 days'"),
+    'updated_at' => DB::raw("updated_at - INTERVAL '8 days'")
+]);
+// Для заказов
+DB::table('orders')->update([
+    'created_at' => DB::raw("created_at - INTERVAL '8 days'"),
+    'updated_at' => DB::raw("updated_at - INTERVAL '8 days'")
+]);
+// Также нужно сдвинуть order_date если он используется
+DB::table('orders')->update([
+    'order_date' => DB::raw("order_date - INTERVAL '8 days'")
+]);
+echo "Готово! Все даты сдвинуты на 8 дней назад через прямой SQL.\n";
+AnalysisAiReport::find(3);
+AnalysisAiReport::find(3)->delete;
+AnalysisAiReport::find(3)->delete();
+exit
+Order::whereNull('organization_id')->orWhereNull('department_id')->update([
+    'organization_id' => 1,
+    'department_id' => 1
+]);
+[200~App\Models\Client::whereNull('organization_id')->orWhereNull('department_id')->update([
+]);~
+App\Models\Client::whereNull('organization_id')->orWhereNull('department_id')->update([
+    'organization_id' => 1,
+    'department_id' => 1
+]);
+exit

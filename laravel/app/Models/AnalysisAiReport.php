@@ -20,6 +20,7 @@ class AnalysisAiReport extends Model
         'won_count',
         'lost_count',
         'employee_stats',
+        'funnel_config',
         'revenue',
         'done_well',
         'done_bad',
@@ -27,7 +28,11 @@ class AnalysisAiReport extends Model
     ];
 
     protected $casts = [
-        'employee_stats' => 'array'
+        'employee_stats' => 'array',
+        'funnel_config' => 'array',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'revenue' => 'decimal:2',
     ];
 
     // Связи
